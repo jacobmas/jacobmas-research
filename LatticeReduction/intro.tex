@@ -1,0 +1,527 @@
+\section{Introduction}
+\label{sec:intro}
+
+
+\paragraph{Learning With Rounding.} The Learning with Rounding ($\lwr$) problem was first introduced by
+Banerjee, Peikert and Rosen~\cite{DBLP:conf/eurocrypt/BanerjeePR12} as
+a derandomization of the standard Learning with Errors ($\lwe$)
+problem~\cite{DBLP:journals/jacm/Regev09}. In dimension $d$ with
+modulus $q$ and a noise distribution $\psi,$ an $\lwe_{d,q,\psi}$ sample for
+a secret $\vecs$ consists of a uniformly random $\veca\in\Z_q^d$ and
+$b=\inner{\veca,\vecs}+e \bmod{q}\in\Z_q$, where $e$ is small, random ``noise'' sampled from $\psi$. By contrast, the corresponding $\lwr_{d,q,p}$ sample in dimension $d$
+with modulii $q > p$ is formed by simply rounding off
+the lower-order bits, instead setting $\veca\in\Z_q^d$ uniformly random and $b=\round{(p/q)\inner{\veca,\vecs}}\in\Z_p$.
+ The initial
+application for the $\lwr$ problem was as a building block in constructing
+efficient, low-depth pseudorandom functions, and there have been a
+number of further works in this
+area, cf.~\cite{DBLP:conf/crypto/0001P14,DBLP:conf/tcc/0001FPPS15,DBLP:conf/crypto/BonehLMR13}.
+
+$\lwr$ can also be used to directly construct public key cryptosystems and
+other ``Cryptomania'' cryptographic
+primitives~\cite{DBLP:conf/crypto/AlwenKPW13}. 
+
+In particular, constructions based on $\lwr$ have an implementation
+advantage over $\lwe$. First of all, constructions based on $\lwe$
+have traditionally required sampling an error term from a discrete (or
+rounded) Gaussian distribution. This can be accomplished
+efficiently~\cite{DBLP:conf/stoc/GentryPV08,DBLP:conf/crypto/Peikert10}
+and other distributions such as the
+uniform~\cite{DBLP:conf/crypto/MicciancioP13} and
+binomial~\cite{DBLP:conf/uss/AlkimDPS16} distributions may be
+substituted (often at the cost of somewhat less efficient
+parameters). Nevertheless, these alternative distributions still
+require some additional randomness to derive the error term(s), which
+can be avoided by using $\lwr$.
+
+As a result of $\lwr$'s usefulness, there has been significant
+theoretical work devoted to obtaining good reductions from $\lwe$ (and
+hence from worst-case hard lattice problems) to $\lwr$. As mentioned
+previously,~\cite{DBLP:conf/eurocrypt/BanerjeePR12} first introduced
+$\lwr,$ and in particular gave a reduction from $\lwe$ to $\lwr$ when
+the ratio of the $\lwr$ moduli $q/p$ is superpolynomial in the
+security parameter $\kappa.$ In a little more detail, for any
+efficiently samplable $B$-bounded distribution $\psi$ (where each
+noise sample $e\leftarrow\psi$ has magnitude at most $B$ w.h.p.), any
+modulii $q,p$ so that $q\ge p\cdot B\cdot \kappa^{\omega(1)},$ and any
+distribution over the secret
+$\vecs$,~\cite{DBLP:conf/eurocrypt/BanerjeePR12} showed that
+distinguishing unboundedly-many $\lwr_{d,q,p}$ samples from uniform
+samples is at least as hard as distinguishing as many
+$\lwe_{d,q,\psi}$ samples from uniform.
+
+Banerjee, Peikert and Rosen also show analogous results
+for the case of the Ring Learning with Errors ($\rlwe$) problem~\cite{DBLP:journals/jacm/LyubashevskyPR13} and Ring Learning with Rounding ($\rlwr$),
+where for an appropriate choice of ring $R$ and secret $s\in R$,
+$\rlwe_{R,q,\psi}$ samples $(a, b)\in R_q\times R_q$\footnote{
+  $\rlwe_{R,q,\psi}$ was initially defined with samples $(a,b) \in R_q
+  \times R^{\vee}_q$, but to avoid defining the codifferent, we
+  follow~\cite{DBLP:conf/crypto/Alperin-SheriffP13} and scale
+  $R^{\vee}$ into $R$.} 
+are similarly obtained by sampling $a\leftarrow R_q$ uniformly and $e\leftarrow\psi$, then setting $b = a\cdot s + e\mod qR;$
+and where $\rlwr$ samples just round off the lower-order bits of the coefficients of ring elements, written as polynomials in the
+``power basis'' representation for $R$.
+
+In later work, Alwen et al.~\cite{DBLP:conf/crypto/AlwenKPW13} gave the first
+reduction from $\lwe$ to $\lwr$ in the case when the modulus $q$ is \emph{a fixed polynomial}
+in the security parameter $\kappa.$ However to do so, their techniques introduce a number of
+drawbacks not originally present in the~\cite{DBLP:conf/eurocrypt/BanerjeePR12} reduction; namely: \emph{(i)} restricting to only
+the case of $\lwe / \lwr$ (rather than $\rlwe / \rlwr$ as well), \emph{(ii)} additionally \emph{a-priori bounding
+the number of $\lwe / \lwr$ samples, $w$,} for the proof to proceed, and \emph{(iii)} losing samples during the course
+of the reduction. More precisely, they show the hardness of $\lwr$ with parameters $d, w, q, p$ from the hardness of $\lwe$ with
+parameters $d', w, q, \psi$ with $\psi$ $B$-bounded, so long as $d > \log(q)/\log(\gamma)\cdot d'$ and $q\ge \gamma(dwBp)$
+for some flexible parameter $\gamma\ge 1.$, with an additional
+constraint that $q$ must have its largest prime factor
+greater than or equal to $\gamma(dwBp)$. 
+
+\iflncs
+\else
+Additionally, Alwen et al. demonstrate many cryptographic applications
+of ``$w$-bounded-sample'' $\lwr$, including constructions of reusable computational
+extractors~\cite{DBLP:conf/stoc/DodisKL09}, lossy trapdoor function families~\cite{DBLP:journals/siamcomp/PeikertW11}, and deterministic encryption~\cite{DBLP:conf/crypto/BellareBO07,DBLP:conf/crypto/BellareFOR08,DBLP:conf/crypto/BoldyrevaFO08,DBLP:journals/joc/BrakerskiS14,DBLP:journals/joc/FullerOR15}.
+In particular, any improvements in their reduction from $\lwe$ to $\lwr$ immediately imply improvements to the security or efficiency of these
+constructions, though -- unfortunately -- not to lattice-based
+pseudorandom function constructions, which (so far) only make use of
+unbounded-sample $\lwr$ for their security proofs.
+\fi
+
+More recently, Bogdanov et al.~\cite{DBLP:conf/tcc/BogdanovGMRR16}
+extended this line of work in a number of ways. Following the work of
+Bai et al.~\cite{DBLP:conf/asiacrypt/BaiLLSS15} (who themselves give
+an $\lwr$ reduction using a different result from the Bogdanov paper
+as a building block), they use R\'{e}nyi
+divergence (rather than statistical
+distance)  in order to fine-tune their statistical analyses. Of
+particular relevance to our work is their reduction to
+$\lwr_{d,w,q,p}$ from $\lwe_{d',w,q,\psi}$ with parameters
+$d', w, q, \psi$ so long as $d > \log(q)\cdot d'$ and $q\ge 2wBp$,
+with no special conditions on the factorization of $q$, and if all of the prime factors of $q$ are at least $\rho$, they only
+require that $d > \log_{\rho}(q) \cdot d'$, making it dimension
+preserving for the special case that $q$ is prime. They are also able to give
+a reduction from the \emph{search} version of $\rlwe$ to the
+\emph{search} version of $\rlwr$, but are unable to prove any
+search-to-decision reduction for $\rlwr$.
+
+\paragraph{Extended-LWE.} The Extended-LWE ($\extlwe$) problem was first introduced formally by
+O'Neill et al.~\cite{DBLP:conf/crypto/ONeillPW11}, although it
+appeared implicitly in several earlier
+works~\cite{DBLP:conf/tcc/DodisGKPV10,DBLP:conf/innovations/GoldwasserKPV10}. In
+addition to receiving the usual $\matA \in \Z_q^{d \times w},
+\vecb=\matA^t\vecs+\vece \in \Z_q^w$ (with $\vece \gets D_{\alpha}^w$), one
+also receives $k$ ``hints'' about the error term in the form of
+$(\{\vecz_i, h_i=\inner{\vece,\vecz_i}\}_{i \in [k]})$, where
+each $\vecz_i$ is generally short and
+may be either specified in advance by the $\extlwe$ adversary or
+sampled along with $(\matA, \vecb)$ by the $\extlwe$ challenger. 
+
+\iflncs
+\else
+The problem and its variants have been used extensively as an
+underlying hard problem for many
+applications, including deniable
+encryption~\cite{DBLP:conf/crypto/ONeillPW11,DBLP:conf/tcc/AponFL16},
+circular security~\cite{DBLP:conf/pkc/Alperin-SheriffP12}, and
+functional encryption~\cite{DBLP:conf/crypto/AgrawalLS16}. It was also
+notably used as an intermediate step in establishing the classical
+hardness of $\lwe$ for polynomial-sized modulus
+$q$~\cite{DBLP:conf/stoc/BrakerskiLPRS13}.
+\fi
+
+O'Neill et al.~\cite{DBLP:conf/crypto/ONeillPW11} were only able to
+prove a reduction from $\lwe$ to $\extlwe$ for a variant of the
+problem where the hints $h_i=\inner{\vece,\vecz_i}+x_i$ had
+sufficiently (superpolynomially) large independent Gaussian noise
+$x_i$ added to them, commonly referred to in the literature as noise
+flooding. Since then, two somewhat incomparable reductions from $\lwe$
+to $\extlwe$ (over general lattices), have been given by Alperin-Sheriff and
+Peikert~\cite{DBLP:conf/pkc/Alperin-SheriffP12} and by Brakersi et
+al., respectively~\cite{DBLP:conf/stoc/BrakerskiLPRS13}.
+
+The Alperin-Sheriff and Peikert reduction preserves the dimension and
+noise parameters, reducing from $\lwe_{d,w,q,\alpha}$ to
+$\extlwe_{d,w,q,\alpha,k}$. However, it reduces the advantage by a
+\emph{multiplicative} factor of (at most) $q^k$ and requires that the
+hints be $B$-bounded for some $B$ smaller
+than every prime factor of the modulus $q$.
+By contrast, the reduction of Brakerski et al. is tight, reducing the
+advantage by a negligible \emph{additive} factor, and has no
+additional constraints on the modulus $q$. However, it loses in
+dimension and in noise parameters, reducing from $\lwe_{d,w,q,\alpha}$
+to $\extlwe_{d+k,w,q,(\alpha^2+r^2)^{1/2},k}$, where $r \geq
+  \omega(\sqrt{\log{w}})$.
+
+\subsection{Our Contributions}
+
+\subsubsection{Hardness of LWR over Module Lattices.}
+\label{sec:hardness-lwr-over}
+
+
+Our main contribution is a reduction from the decision version of
+$\lwr$ to the decision version of $\extlwe$, with problems defined over \emph{module
+lattices}~\cite{DBLP:journals/dcc/LangloisS15}. While all
+lattice-based cryptography can technically be viewed as being over
+module lattices, those of
+variable rank and using arbitrary rings were first implicitly used for
+cryptography in~\cite{DBLP:conf/innovations/BrakerskiGV12}, and were first formally investigated by Langlois and
+Stehl{\'{e}}~\cite{DBLP:journals/dcc/LangloisS15}. For an
+$n$-dimensional number field, they can be defined
+via the embedding $\sigma_{M}: K^d \to \R^{nd}$ defined by $\sigma_{M} =
+(\sigma)_{i \in d}$, where $\sigma$ is the canonical embedding. For a
+module lattice $M$, the
+set $\sigma_{M}(M)$ is a module lattice, and similarly to ideal
+lattices, we often identify the module $M$ with its embedded
+lattice. 
+
+\paragraph{Why Module Lattices?} Most importantly, one can see module lattices as a generalization of both
+general integer lattices and of
+ideal lattices. In particular, if $K=\Q$, then it is easy to see that
+this defines an arbitrary integer lattice, while if we set
+$d=1$, we end up with ideal lattices. As a result, our reduction over
+module lattices specializes to a reduction from $\lwr$ to $\extlwe$
+and from $\rlwr$ to $\extrlwe$. 
+
+Secondly, as mentioned by Langlois and
+Stehl{\'{e}}, for an $O(n)$-dimensional cyclotomic ring, $1 < d \ll
+n$, cryptography based on module lattices maintain much of the
+practical advantages over cryptography based on general lattices,
+while enjoying potentially stronger theoretical security
+guarantees. In particular, for $d=1$ (corresponding to ideal
+lattices), the Minkowski upper bound on the length of the shortest
+vector is within a $\sqrt{n}$ factor of the actual length of the
+shortest vector in the
+lattice~\cite{DBLP:journals/jacm/LyubashevskyPR13}, which makes
+$\gapsvp_{\sqrt{n}}$ for cyclotomic rings into an easy problem. By
+contrast, for $d \geq 2$, it is an easy exercise to show that there
+exist module lattices with shortest vector shorter than Minkowski's
+upper bound by any arbitrarily large factor, and more generally, in
+this case no polynomial-time algorithm is known for approximating
+$\text{Mod}\text{\textendash}\gapsvp$ (i.e. $\gapsvp$ over module lattices) to within
+any polynomial factor. As a result, we may apply Peikert's classical
+reduction from $\gapsvp$ to $\bdd$ in the module lattice
+setting~\cite{DBLP:conf/stoc/Peikert09}, using the oracle reducing
+$\text{M}\text{\textendash}\bdd$ to $\mlwe$ found
+in~\cite{DBLP:journals/dcc/LangloisS15} and gain potentially more
+confidence in the hardness of $\mlwe$ (for $d\geq 2$) than we can in
+the hardness of $\rlwe$, for which there only exists a \emph{quantum}
+reduction from plausibly hard worst-case lattice
+problems. 
+
+
+
+Combining our new reduction with our secondary results (see
+Section~\ref{sec:new-ext} below), we end up with two semi-incomparable
+reductions from $\lwr$/$\mlwr$ to $\lwe$/$\mlwe$. 
+
+\begin{theorem}\label{thm:main-thm}Let $\kappa$ be a security
+  parameter on which all other parameters depend. Let $R$ be the ring
+  of integers of a number field of dimension $n$, $\psi$ be a
+  distribution over $R$ bounded by some $B >0$. Let
+  $p, q = \poly(\kappa), w=\poly(\kappa),d \in \N$ such that
+  $q \geq 4eBwp\kappa$.  
+
+\begin{enumerate}
+\item If $\exists$ a probabilistic
+  polynomial-time $\Adv$ succeeding with advantage
+  $\epsilon(\kappa) \geq (\kappa)^{-c}$ for some constant $c \geq 1$
+  in distinguishing $\mlwr_{R,d,xw,q,p}$ from uniform, then there exists a
+  probabilistic polynomial-time algorithm $\Adv'$ succeeding with advantage
+  $\epsilon(nw)^{-c}/4 \geq (\kappa w)^{-c}/4$ in distinguishing
+  $\mlwe_{R,d-c,w,q,\psi}$ from uniform, as long as $\psi=D_{\alpha}$
+  and $D_{\alpha^2+\omega(\log{\kappa})}$  is $B$-bounded.
+\item In the case that $R=\Z$ (i.e. the general lattice
+  case), if there exists a probabilistic polynomial-time $\Adv$
+  succeeding with advantage $\epsilon(\kappa) \geq (\kappa)^{-c}$ for
+  some constant $c \geq 1$ in distinguishing $\lwr_{d,w,q,p}$ from
+  uniform, then there exists a probabilistic polynomial-time algorithm
+  $\Adv'$ succeeding with advantage
+  $\epsilon(w)^{-c}q^{-3.2}/4 \geq (\kappa w)^{-c}q^{-3.2}/(4)$ in
+  distinguishing $\lwe_{d,w,q,\psi}$ from uniform, as long as
+  $\psi=D_{\alpha}$ and $D_{\alpha^2+\omega(\log{\kappa})})$ is
+  $B$-bounded.
+\end{enumerate}
+\end{theorem}
+
+In Table~\ref{tab1}, we give a comparison to the previous reductions
+from $\lwr$ to $\lwe$, omitting
+constants, negligible amounts, and $O(\cdot)$ symbols for
+readability. We stress that the previous works have only provided reductions
+to (decision)-$\lwr$ over integer lattices, while our first reduction
+works over module lattices. 
+
+\begin{table}[!h]
+\begin{tabular}{| p{2.5cm} | p{2cm} | p{2cm} | p{2.5cm} | p{2.5cm} |}
+\hline
+~\textbf{Work} & \textbf{Unbounded Samples} ($w$) & \textbf{Modulus} ($q$) & \textbf{Advantage
+                                                Change} $(\epsilon\rightarrow\epsilon'$) & \textbf{Dimension Change} ($d\rightarrow d'$) \\
+\hline
+~\cite{DBLP:conf/eurocrypt/BanerjeePR12} & Yes &
+                                                                $Bp\kappa^{\omega(1)}$&$\epsilon-\negl(\kappa)$&$d$\\
+\hline
+~\cite{DBLP:conf/crypto/AlwenKPW13} & No & $\gamma
+                                           Bwp\kappa$&$\epsilon/(2dw)$&$d\log(\gamma)/\log{q}$\\
+\hline
+~\cite{DBLP:conf/tcc/BogdanovGMRR16} & No &
+                                            $Bwp$&$(\epsilon/qw)^2$&$d/\log_{\rho}{q}$\\
+\hline
+~\cite{DBLP:conf/asiacrypt/BaiLLSS15}& No & $Bwp \kappa$&$\epsilon^2/n^{O(1)}$&$d$\\
+\hline&&&&\\[-2.6ex]
+\hline
+~This work (1.)~~ & No & $Bwp\kappa$&$\epsilon(w)^{-c}$&$d-c$\\
+~This work (2.)~~ & No & $Bwp\kappa$&$.8\epsilon(w)^{-c}q^{-3.2}$&$d$\\
+\hline
+\end{tabular}
+\caption{In this table, we have $c \leq -\ln(\epsilon)/\ln(\kappa)$, $\gamma \geq
+1$, every prime factor of $q$ is greater than $\rho$.}\label{tab1}
+\end{table}
+
+\vspace{-40pt}
+\subsubsection{New Reductions from $\extlwe$ to $\lwe$.}
+\label{sec:new-ext}
+ As a secondary contribution,
+we improve and generalize the previous reductions from $\extlwe$ to
+$\lwe$ of Alperin-Sheriff and
+Peikert~\cite{DBLP:conf/pkc/Alperin-SheriffP12} and of Brakersi et
+al., respectively~\cite{DBLP:conf/stoc/BrakerskiLPRS13}.
+
+Our improvement of the reduction of Alperin-Sheriff and Peikert allows
+us to eliminate the requirement that the size of any hint be bounded
+(except with negligible probability) by a
+$B$ smaller by a factor of 2 than any of the prime factors of the modulus $q$. While
+the reductions remains dimension and noise parameter-preserving, it
+comes at the cost of an even greater loss in advantage than the
+original reduction. 
+
+The original reduction of Alperin-Sheriff and Peikert was essentially
+a Goldreich-Levin style reduction. It involved guessing the correct
+value of the ``hint'' and then altering the distribution so that if
+the guess was correct, the output distribution would be $\extlwe$,
+while if the guess was incorrect, the output distribution would be the
+uniform distribution.  The problem necessitating the $B$-boundedness
+constraint is that otherwise, an incorrect guess might result in
+outputting a ``hybrid'' distribution that we denote  $\extlwe^{d}$. In
+this distribution, the $\vecb$ output is
+of the form $d\cdot \vecv + \vecw$ for some factor $d$ of $q$, where
+$\vecv$ is uniform but $\vecw$ is not. As there are no guarantees as
+to how a distinguisher between $\extlwe$ and uniform will behave when
+encountering this hybrid distribution, this seemed to make a reduction
+difficult in this case, as the adversary could potentially behave in a
+pathological manner in these ``hybrid'' cases that would eliminate
+any distinguishing capability between the case when the original input distribution is
+$\lwe$ and the case when the input distribution is uniform.
+
+There are indeed no guarantees as to how a distinguisher between
+$\extlwe$ and uniform might
+behave on seeing this hybrid distribution. However, it turns out to be very
+simple to prove that there must be a factor of $d>1$ such that the
+distinguisher has a non-negligible advantage in distinguishing
+$\extlwe^{d}$ and uniform, and that the distinguisher has a
+significantly smaller advantage in distinguishing $\extlwe^{d'}$ and
+uniform for any $d' < d$. Combining this with the fact that the
+Gaussian distribution is non-increasing as a function of the
+\emph{absolute value} of x, a lot of technical calculations, and a
+clever bound using the Riemann function yields the reduction.
+See Section~\ref{sec:impr-reduct-over} for
+details. 
+\vspace{-15pt}
+\paragraph{Generalization to Module Lattices.} Over module lattices, we give a reduction from module $\lwe$ ($\mlwe$)
+to extended-$\lwe$ over module lattices
+($\extmlwe$). This reduction is a fairly straightforward adaptation of
+the $\lwe$ to $\extlwe$ reduction that can be found in~\cite{DBLP:conf/stoc/BrakerskiLPRS13}, but requires some care since we are
+working over rings that in general fail to be principal ideal
+domains 
+\iflncs 
+; see
+Section~\ref{sec:extended-lwe-over}.
+\else
+.
+\fi
+
+More importantly, we give what we believe is a meaningful new generalized
+\emph{definition} of $\extlwe$ for the context of module lattices.  
+Concretely, we define the $\extmlwe$  distribution as outputting, for
+an input set of vectors $\{\vecz_i\}_{i \in [k]}$,
+$(\matA, \vecb=\matA^t\vecs+\vece, (\trace(\inner{\vece,\vecz_{i}}))_{i \in [k]}) \in R_q^{d
+  \times w} \times R_q^{w} \times \Q_q^k$,
+where $\vece \gets \psi^{w}$.
+An explanation is in order for the use of the trace function in the
+definition of the hints, which is not found in previous definitions of
+$\extlwe$ (and indeed has no meaning over general lattices, as
+$\trace_{\Q/\Q}$ is the identity function). The purpose of including
+the trace function is to provide a method to request any $\Q$-linear
+function of the error vector, as viewed in the coefficient embedding,
+as the hints. 
+
+In our proof of security, we do not gain anything by limiting to extracting
+only the trace of the inner product instead of allowing extraction the
+entire inner product $\inner{\vece,\vecz_i}$. However, the latter case
+clearly reveals strictly less information (given the hint alone) than the
+former and may lead to a less costly reduction. Moreover, using
+the full trace allows for a nicer reduction to $\mlwr$,, as we end up only requesting the error coefficients we
+need instead of needing to request entire ring elements.
+
+As our reduction from $\mlwe$ to $\extmlwe$ has an additive loss of
+$k$ in dimension when $k$ hints are received, it does not give a
+meaningful reductions from $\rlwe$ to $\extrlwe$. While we believe
+that (should one be possible), our definition is the ``right''
+definition for a potential future reduction from $\rlwe$ to
+$\extrlwe$, we are unable to prove one in this work. We instead leave
+resolving this important question of a potential reduction from
+$\rlwe$ to $\extrlwe$ as an
+open problem.
+
+\iflncs
+
+\else
+As a side note, we believe that it \emph{should} be possible without too much difficulty to prove
+a reduction from $\rlwe$ to an alternative form of
+$\extrlwe$. Specifically, in this version one receives
+the error modulo some prime ideal of $qR$ as the ``hint,'' and the
+proof would work for those choices of $q$ and $R$ such that $q$
+factors over $R$ into the product of prime ideals all having small norm (i.e. polynomial in the security parameter).  
+Briefly, such a reduction would follow the reduction from $\lwe$ to
+$\extlwe$ by Alperin-Sheriff and
+Peikert,~\cite{DBLP:conf/pkc/Alperin-SheriffP12} where the reduction
+guesses the value of the error term modulo the requested prime ideal,
+and then modifies the $\rlwe$ samples based on the guess so that a
+correct guess results in valid $\rlwe$ samples and an incorrect guess
+results in uniform samples. Some care would also have to be taken to
+show that the resulting samples are in fact uniform, using some of the
+techniques in the search-to-decision reduction for $\rlwe$ in~\cite{DBLP:journals/jacm/LyubashevskyPR13}.
+
+However, such a reduction does not appear to be useful for our goal of
+getting a reduction for $\rlwr$, at least in a manner similar to our
+reduction for regular $\lwr$, so we omit a formal proof. The problem
+here is that the $\rlwe$ error will necessarily be statistically
+uniform modulo any small prime ideal, so we cannot simply round each
+coefficient of an LWE sample in the ``CRT representation'' and have
+any useful bound on the likelihood that the coefficient will round to
+an equivalent value in the errorless version of the sample.
+Conversely, in the coefficient representation and/or the canonical
+embedding, we will be able to obtain useful bounds on these
+likelihoods, but learning the error modulo a prime ideal will be
+entirely useless for dealing with the ``bad'' coefficients.
+\fi
+
+
+\subsubsection{Application To Kyber.}
+Kyber~\cite{DBLP:journals/iacr/BosDKLLSSS17} is a module lattice-based
+key exchange mechanism (KEM) that is expected to be submitted to the
+NIST post-quantum cryptography (PQC) standardization
+process~\cite{NISTCFP}. As a motivating factor for our results, we
+show that with minor modifications, the security of the KEM can be
+based on Module-$\lwr$. Furthermore, as a result of these changes, the
+scheme runs about 10\% faster. 
+
+We note that, interestingly, we did not have to add a rounding
+step. Kyber already has a rounding step, which it does in order to
+further shrink the size of the ciphertexts. Under the Module-$\lwr$
+assumption, this also suffices for security without having to add any
+additional error. 
+
+For various technical and bureaucratic reasons, we will not be
+submitting this modification to NIST as a candidate for the
+standardization process. However, we believe this result demonstrates that
+module-$\lwr$ can be useful for real-world public key
+cryptography in addition to its past mostly theoretical uses. 
+
+\subsection{Our Approach}
+\label{sec:approach}
+
+The connection given in each of the four previous works between
+$\lwe$ and $\lwr$ ultimately stems from the fact that it will usually
+be the case that
+\begin{equation}\label{eq:good_case}\round{\inner{\veca,\vecs}}_{p}=\round{\inner{\veca,\vecs}+e}_{p} \pmod{q}\end{equation}
+when $e$ is drawn from a $B$-bounded distribution and $q$ is
+sufficiently larger than $Bp$. Denoting an $\lwe$ sample
+$(\veca,b=\inner{\veca,\vecs}+e \pmod{q})$ where
+Equation~\ref{eq:good_case}  does not hold true as a ``bad'' sample,
+each of the three previous reductions proceeds by finding some way to deal
+with these ``bad'' samples. 
+
+
+In Banerjee et al.'s original
+work~\cite{DBLP:conf/eurocrypt/BanerjeePR12}, they simply set $q$ to be superpolynomially large
+than $Bp$, so that Equation~\ref{eq:good_case} holds with all but negligible
+probability, allowing an unbounded polynomial number of samples. As in
+the subsequent two works~\cite{DBLP:conf/crypto/AlwenKPW13,DBLP:conf/tcc/BogdanovGMRR16}, we provide a more
+sophisticated bound for the case that the number of $\lwr$ samples
+received $w$ is an a priori bounded polynomial in the underlying
+security parameter $\kappa$. 
+
+The first insight into our reduction comes from noticing that we can
+tune the maximum number of ``bad'' samples allowed in a $(\matA \in
+\Z_q^{d \times w}, \vecb \in \Z_q^w)$ received from the $\lwe$ oracle
+to the advantage
+$\epsilon \geq \kappa^{-c}$ (where $c$ is some constant independent
+  of $\kappa$) of a given adversary $\Adv$ in attacking $\lwr$. In
+  this case, by setting $q \geq Cw\kappa Bp$ for a suitable small
+  constant $C$, we can easily show that the probability that $\vecb$
+  contains more than $c$ ``bad'' elements is at most
+  $\tfrac{1}{2}\kappa^{-c}$. Consequently, if we could find a method to
+  transform any set of $\lwe$ samples with at most $c$ ``bad'' elements into
+  a set of $\lwr$ samples, then we could construct $\Adv'$ that could use
+  $\Adv$ to successfully attack $\lwe$ in the \emph{same
+    dimension}. Specifically, $\Adv'$ would work as follows:
+
+\begin{enumerate}
+\item $\Adv'$ queries its $\lwe$ oracle to receive back $(\matA \in
+  \Z_q^{d \times w},
+  \vecb)$. If $\vecb$ contains $c$ or more bad elements, $\Adv'$
+  aborts. 
+\item $??????$
+\item $\Adv'$ sends $\Adv$ $(\matA \in \Z_q^{d \times w},\vecb
+  \in \Z_p^{w})$ within statistical distance $\epsilon/2$ of $\lwr$.
+\end{enumerate}
+
+Of course, this reduction has a missing step-how do we successfully
+transform an $\lwe$ sample with (at most) $c$ bad elements into a
+valid $\lwr$ sample? Rounding the ``good'' elements properly is easy,
+as we know that for those elements,
+$\round{b_i}_p=\round{\inner{\veca_i,\vecs}}_p$. But what about the ``bad''
+elements, where it may be the case that $\round{b_i}_p \neq
+\round{\inner{\veca_i,\vecs}}_p$. It turns out that there is an
+easy solution: \emph{we guess them}!
+
+More formally, instead of showing a reduction from $\lwe$ to $\lwr$, we
+show a reduction from extended-LWE ($\extlwe$) (with $c$
+hints) to $\lwr$, and then rely on the existing reductions from $\lwe$
+to $\extlwe$ to achieve a full reduction from $\lwe$ to $\lwr$. The $\extlwe_{d,w,q,\alpha,c}$ problem allows
+one to query for the result of $c$ linear functions of the
+error vector $\vece$ to be received along with the $\lwe$ sample
+$(\matA,\vecb)$, and in
+particular, arbitrary elements $e_i$ of the
+error vector. 
+
+As a result, in order to round the ``bad'' elements properly, we
+simply make a uniform random guess (in advance) which $c$ elements of
+$\vecb$ might be ``bad.''  With probability at least $w^{-c} \geq
+1/\poly(\kappa)$, we will guess correctly, in which case we can simply
+subtract off the associated terms and then correctly round the
+result.  If we guess incorrectly,
+we abort. Note that this step requires an artificial abort on correct
+guesses to ensure that the sample getting sent to $\Adv$ remains
+distributed within $\epsilon/2$ of actual $\lwr$; see
+the body of the paper for details. 
+
+
+
+
+
+\paragraph{Organization.} In Section~\ref{sec:prelims} we recall
+various preliminary facts that we will need for the rest of the
+paper. In Section~\ref{sec:ext-lwe}, we extend the definition of
+extended $\lwe$ to module lattices, and prove a reduction from $\mlwe$
+to $\extlwe$; this section is standalone and may be skipped for those
+unfamiliar with the ring setting. Finally, in
+Section~\ref{sec:redlwelwr}, we give a dimension-preserving reduction
+from $\extmlwe$ to $\mlwr$. We stress that this section has been
+written to be accessible to someone only familiar with integer
+lattices, by simply viewing $R$ as $\Z$ when reading it, and noting
+that this makes
+the ring dimension parameter $n=1$. 
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "latticereduction"
+%%% End: 

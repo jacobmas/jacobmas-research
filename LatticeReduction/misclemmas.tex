@@ -1,0 +1,23 @@
+
+\subsection{Miscellaneous Lemmas}
+\label{sec:miscellaneous-lemmas}
+
+\begin{lemma}\label{lem:collision_lemma}
+Let $\chi$ be a distribution with support on $0, 1, \ldots, n-1$ for some $n$. Then
+\[\Pr_{x, x' \gets \chi}[x=x']\geq 1/n\]
+\end{lemma}
+\begin{proof}
+Our proof proceeds by induction on $n$. For the case $n=1$ the only possible distribution for $\chi$ is the one that outputs $0$ with probability $1$, which covers the base case.
+
+Now, assume the lemma is true for all distributions with support on $0, 1, \ldots, k-1$ for any $k < n$. Now, consider an arbitrary distribution $\chi$ with support on $0,1,\ldots, n-1$. We have that 
+\begin{align*}
+\Pr_{x,x' \gets \chi}[x=x']&=\sum_{i=0}^{n-1}\Pr_{x, x' \gets \chi}[x=i \wedge x' = i]\\
+&=\sum_{i=0}^{n-1}\Pr_{x \gets \chi}[x=i]\Pr_{x' \gets \chi}[x'=i]\\
+&=\sum_{i=0}^{n-1}(\Pr_{x \gets \chi}[x=i])^2\\
+\end{align*}
+\end{proof}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "latticereduction"
+%%% End: 

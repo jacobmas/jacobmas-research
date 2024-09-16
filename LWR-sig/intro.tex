@@ -1,0 +1,233 @@
+\section{Introduction}
+\label{sec:intro}
+The Boyen-Li lattice-based signature scheme~\cite{DBLP:conf/asiacrypt/BoyenL16} from Asiacrypt 2016, is a theoretical breakthrough in terms of signature schemes with tight security reductions in the standard model. 
+
+Previous schemes achieving a reduction loss in security independent of the number of signing queries were either only proven secure in the random-oracle model~\cite{DBLP:conf/ccs/KatzW03,DBLP:journals/joc/BonehLS04}, required large signatures (of size at least quadratic in the security parameter)~\cite{DBLP:conf/pkc/BlazyKKP15}, or are insecure against quantum attacks~\cite{DBLP:conf/crypto/ChenW13,DBLP:conf/eurocrypt/GennaroHR99,DBLP:journals/joc/BonehB08}. Their scheme manages to achieve short signatures (consisting of a single lattice vector in $\Z_q^{m}$) in the standard model with a loss in security depending (up to a constant factor) only on the loss from the security reduction of the pseudorandom function family (PRF) which underlies their scheme.
+
+The starting point of their scheme is the Katz-Wang signature scheme, proven secure in the random oracle model~\cite{DBLP:conf/ccs/KatzW03}. Viewed at a high level, this scheme requires a pseudorandom function (PRF) $\PRF_k$, a hash function $H$ modeled as a random oracle, and a trapdoor function $f$. The signer computes a signature $\sigma$ by  inverting the trapdoor at $H(\PRF_{k}(\mu) ||\mu)$, and the verifier accepts if $f(\sigma)=H(b || \mu)$ for some $b \in \bit$. In the security proof, the random oracle is programmed so that it can only invert the trapdoor function $f$ at $f^{-1}(H(\PRF_{k}(\mu) || \mu))$, while learning $f^{-1}((H(1-\PRF_{k}(\mu)) || \mu))$ would allow it to solve some hard problem. If the PRF is secure, the latter case will happen with probability 1/2.
+
+Boyen and Li notice that instead of using a random oracle, they can use the key-homomorphic trapdoor functions of Boneh et al. to encode the bits of the PRF key in the verification key~\cite{DBLP:conf/eurocrypt/BonehGGHNSVV14}. To sign a message $\mu$, they simply use the properties of the key-homomorphic trapdoor functions to homomorphically evaluate the PRF on $\mu$, setting up the public key so they can only invert the trapdoor at $b=\text{PRF}_{k,\mu}$. This enables them to gain tight security (with loss $1/2$) in the same manner as Katz and Wang, without having to resort to the random oracle heuristic. 
+
+Evaluation of non-trivial circuits over homomorphic trapdoor functions comes at a price. 
+In particular, while the Boyen-Li scheme can be instantiated with AES or any other block cipher as the PRF, these appear to be less than ideal choices. The reason for this is because block ciphers such as AES appear to require relatively high circuit depth to evaluate homomorphically~\cite{DBLP:conf/crypto/GentryHS12}, which forces the scheme to be based on the hardness of  approximating $\sis$ to within a subexponentially large factor. Unlike $\sis$ with polynomially large factors, this problem can be solved in subexponential time using the BKZ algorithm~\cite{DBLP:journals/mp/SchnorrE94,DBLP:conf/asiacrypt/ChenN11}.
+
+As an alternative to assuming the subexponential hardness of $\sis$, they recall that a function with a circuit in $\NC{1}$  can be evaluated using the standard lattice-based homomorphic trapdoor constructions with only
+polynomial growth in the size of the underlying
+trapdoor~\cite{DBLP:conf/innovations/BrakerskiV14,DBLP:conf/asiacrypt/GorbunovV15}. Those PRFs which are known to have an $\NC{1}$ circuit are mostly based on quantum insecure  assumptions~\cite{DBLP:journals/jcss/NaorR99,DBLP:journals/siamcomp/NaorRR02}.
+
+The only potentially post-quantum PRF with an $\NC{1}$ circuit that we are aware of is the ring-$\lwe$ ($\rlwe$) based PRF of Banerjee et al.
+~\cite{DBLP:conf/eurocrypt/BanerjeePR12}, and indeed, this PRF is used by Boyen and Li for the quantum-secure instantiation of their scheme.  The PRF of Banerjee et al., along with the quantum-insecure PRFs referenced above \footnote{While they mention a DDH-based PRF construction by Jager that achieves a polylogarithmic loss in security, the paper containing it has since been withdrawn.}, all have a linear security loss in their reduction to the underlying hard problem on which they are based. As a result, Boyen and Li are able to instantiate their signature scheme with an overall loss in security linear in the underlying security parameter, but independent of the number of queries made by the adversary, which is a first for standard model lattice-based signature schemes with short signatures.
+
+For completeness, we note that their paper also constructs a fully-secure IBE scheme enjoying very similar properties, where it enjoys some additional relative advantage to other such lattice-based schemes, as all such schemes require very large public keys (albeit not as large as theirs). However, our focus in this work is on the signature scheme only, as our main techniques do not transfer to the IBE setting.
+\subsection{Improving the Boyen-Li Scheme}
+\label{sec:an-improved-boyen}
+
+\jnote{Remove standard model column, add runtime column for signing}
+
+\begin{figure}[ht]
+\label{fig:results-comp}
+{\centering
+\begin{tabular}{|l|c|c|c|c|c|}
+\hline
+Scheme&Pub. Key&Signature&Reduct.&Assumption(s)\\
+&$R_q^{1 \times k}$ mat.&$R_q^{k}$
+vec.&loss&\\
+\hline
+\cite{DBLP:journals/joc/CashHKP12}&$n$&$n$&$Q$&$\rsis(n^{3/2})$\\
+\cite{DBLP:conf/pkc/Boyen10}&$n$&$1$&$Q$&$\rsis(n^{7/2})$\\
+\cite{DBLP:conf/eurocrypt/MicciancioP12}&$n$&$1$&$Q$&$\rsis(n^{5/2})$\\
+\cite{bohl2013confined}&$1$&$d$&$(Q^2/\epsilon)^c$&$\rsis(n^{5/2})$\\
+\cite{DBLP:conf/crypto/DucasM14}&$d$&$1$&$(Q^2/\epsilon)^c$&$\rsis(n^{7/2})$\\
+\cite{DBLP:conf/pkc/Alperin-Sheriff15}&1&1&$(Q^2/\epsilon)^c$&$\rsis(d^{2d}\cdot
+n^{11/2})$\\
+\cite{DBLP:conf/asiacrypt/BoyenL16}&$nw\log^2{n}$&1&$\lambda$&$\rsis(w^{4}n^{7/2}),\rlwe(wn^{w/2})$\\
+\hline
+This work&$n\log{n}$&$1$&$1$&$\rsis(n^{7/2}),\lwr(n)$\\
+\hline
+\end{tabular}\\}
+\medskip 
+
+To avoid clutter, we ignore constant parameters above. We write $\sis(\cdot)$ to specify the SIS parameter, and $\lwe(\cdot), \lwr(\cdot)$ to specify the $\lwe$ noise ratio and $\lwr$ rounding ratio, respectively. For SIS parameters, we also ignore logarithmic parameters, i.e. we write the parameter in $\tilde{O}$ notation without the $\tilde{O}$. 
+The comparison is in the ring setting because as written, some of these schemes are only realizable in the ring setting. For those schemes
+using confined guessing or variants thereof, $d$ is a value
+satisfying $2Q^2/\epsilon < 2^{\floor{c^d}}$ for a constant $c=2$. For the Boyen-Li Scheme, $w$ is a parameter representing the length of input messages, and $\delta>1$ is such that the PRF of Banerjee et al. ~\cite{DBLP:conf/eurocrypt/BanerjeePR12} can be computed by an $\NC{1}$ circuit of depth $\delta \log{w}$.
+\caption{Comparison to other standard model lattice-based signature
+  schemes in the ring setting}
+\end{figure}
+
+Our main result is an improved version of the Boyen-Li signature scheme.
+
+
+
+
+
+
+
+
+
+
+
+
+
+\paragraph{Better Parameters and Runtime.} First, we improve greatly on the size of the public key and the hardness assumptions required.  While our public key is still large (compared to some other lattice-based schemes), it is nevertheless a significant improvement over that of Boyen and Li. Although they never explicitly state the size of the public key in their work, it is clear that they need to encode the secret key for the PRF Banerjee et al. in the public key~\cite{DBLP:conf/eurocrypt/BanerjeePR12}, and furthermore, that at least one matrix is required in the public key for each bit of the PRF secret key in order to homomorphically evaluate the PRF using the ideas of Brakerski and Vaikuntanathan discussed above. The $nw\log^2{n}=O(n^2\log^2{n})$ value we give in Figure~\ref{fig:results-comp} then follows from the conditions required of the modulus of the PRF scheme. 
+
+
+Furthermore, we contend that while our public key is indeed large compared to those in~\cite{DBLP:conf/crypto/DucasM14,DBLP:conf/pkc/Alperin-Sheriff15}, the reduction loss in security in those schemes is so great as to make their proofs of security somewhat vacuous, while our reduction loss in security is constant ($6$). For an adversary making $2^{40}$ queries and succeeding with advantage $2^{-40}$ (which would be considered a practical ``break'' of the scheme), the reduction would yield an attack on the underlying hard problems that succeeds with advantage only $2^{-280}$, which is almost certainly too small to be considered practically meaningful. By contrast, an adversary making $2^{40}$ queries and succeeding with advantage $2^{-40}$ against our scheme would yield an attack against the underlying hard problems with advantage $2^{-43}$, which is still quite meaningful. For the other known standard-model lattice-based signature schemes, our public key is bigger by at most a logarithmic factor. 
+
+
+
+We also gain significantly in terms of the size required for the
+modulus $q$ (which itself affects the size of the public key). They
+need to set the modulus to be at least\\ $q=\omega(\lambda^{4(1+c)})$,
+where the given PRF can be evaluated in depth $d=c\log{\lambda}$, and
+it takes time $\Omega(\lambda^{2c+1})$ to evaluate the PRF
+homomorphically, even in the ring setting. The specific values of $c$
+for pseudorandom functions known to be in
+$\NC{1}$~\cite{DBLP:conf/eurocrypt/BanerjeePR12,DBLP:conf/crypto/0001P14,DBLP:journals/jacm/NaorR04,DBLP:conf/crypto/DottlingS15}
+are not explicitly investigated by Boyen and Li (or by the authors of
+the papers in which the PRFs appear). However, the paper by Banerjee
+et al describes three sequential steps of a multi-product of vectors,
+a discrete Fourier Transform, and a rounding step, each of which can
+be seen to require at least $\log{n}$ depth (since each step depends
+on all $n$ input bits)~\cite{DBLP:journals/siamcomp/ReifT92}, which suggests that $c$ is at least $3$.
+
+
+Our scheme gains even further in terms of runtime, and we discuss this point further below in Section~\ref{sec:techniq}.
+
+\paragraph{Tighter and Weaker Assumptions.}
+
+
+In addition to a much smaller $\sis$ parameter of $n^{7/2}$ versus
+what appears to be $O(n^{7/2}w^{12})=O(\lambda^{31/2})$ in the
+Boyen-Li paper (based on the apparent depth of the underlying PRF), we
+avoid the need for relying on the very strong and somewhat
+questionably quantum-safe\footnote{While no attacks on $\rlwe$ itself
+  are known for subexponential large error ratios,Cramer, Ducas and
+  Wesolowski recently gave a quantum polynomial-time algorithm for
+  approximating the worst-case shortest vector on ideal lattices to
+  within a factor of
+  $\exp(\tilde{O}(\sqrt{n}))$~\cite{DBLP:journals/iacr/DucasS16},
+  making the reduction from $\rlwe$ to worst-case ideal lattice
+  problems essentially vacuous} assumptions like the hardness of
+$\rlwe$ for subexponentially large error ratios. Instead, our
+additional assumption is the hardness of the Learning with Rounding
+problem ($\lwr$) over \emph{general lattices} with a small (linear)
+rounding ratio. $\lwr$ over general lattices remains very plausibly
+quantum-hard for even for subexponential rounding ratios, and for the
+rounding ratio we require, we would expect any efficient (quantum)
+attack on $\lwr$ to be adaptable into an efficient attack on
+essentially all lattice-based cryptography; see
+Section~\ref{sec:weak-pseud-funct} for some further justification.
+
+\subsection{Our Techniques}
+\label{sec:techniq}
+Our starting point is an investigation of the minimal security properties the function homomorphically evaluated in the Boyen-Li scheme must satisfy in order that the entire signature scheme be secure, i.e. existentially unforgeable against adaptive chosen-message attacks (eu-acma). We note that the adversary has the ability to choose which messages will be (homomorphically) evaluated by the function when computing the signature by simply asking the signing oracle to sign those messages. As a result, in order for the function's output to remain unpredictable by any means more successful than a random guess, the function must indeed be a strong pseudorandom function. 
+
+However, we recall that by hashing the message with a chamelon hash function~\cite{DBLP:conf/ndss/KrawczykR00} before signing, we can essentially eliminate an adversary's ability to choose which messages will be signed. In more detail, it has  been shown~\cite{DBLP:conf/crypto/ShamirT01} that a signature scheme that is existentially unforgeable against an adversary who can only observe signatures for (uniformly) \emph{random} messages, can be turned into an euf-acma secure signature scheme by applying a chameleon hash function a concatenation of the message with some auxiliary sampled randomness, signing the output of the chameleon hash function instead of directly signing the message, and including the auxiliary sampled randomness as part of the signature.
+
+\paragraph{Weak Pseudorandom Functions.}
+Once the ability of the adversary to choose messages has been eliminated and the adversary is limited to observing signature on messages sampled uniformly at random, we now see that the function being homomorphically evaluated need only be a \emph{weak} pseudorandom function ($\weakprf$s)~\cite{DBLP:conf/crypto/DamgardN02}. In contrast to strong pseudorandom functions, the output must only
+remain unpredictable against an adversary who can observe the output of the function on any polynomial number of messages chosen uniformly at \emph{random}.
+
+At a complexity theoretic level, there is very strong evidence that weak pseudorandom functions are much simpler to compute than strong PRFs. In particular, Razborov and Rudich~\cite{DBLP:conf/stoc/RazborovR94} have shown that any candidate strong pseudorandom function family computable in the complexity class $\AC{0}(\algo{MOD}_2)$ of polynomial-size (in parameter $\lambda$) constant-depth circuit families with unbounded fan-in $\algo{AND},\algo{OR}$ and $\algo{MOD}_2$ gates can be only superpolynomially hard. In particular, they can be attacked by an adversary of size $h$ with advantage at least $1/h$ for $h=O(\exp(\poly(\log{n}))$. 
+By contrast, there exist candidate weak pseudorandom functions (that are plausibly exponentially hard) in this complexity class~\cite{DBLP:conf/innovations/AkaviaBGKR14}.
+
+Instead of using the candidate weak pseudorandom functions in $\AC{0}(\algo{MOD}_2)$, we instead opt for using the Learning With Rounding ($\lwr_{n,q,2}$) function family, for modulus $q=2^{\ell}$~\cite{DBLP:conf/eurocrypt/BanerjeePR12}. Each function in the family is indexed by a secret $\vecs \gets \Z_q^n$, and on input $\veca \in \Z_q^{n}$ outputs 
+\[f_{\vecs}(\veca)=\round{\inner{\veca,\vecs}}_{2}=\round{\tfrac{2}{q} \inner{\veca,\vecs}} \bmod{2}.\]
+
+Under the assumption that $\lwr_{n,q,2}$'s output is indistinguishable from a truly random function (when evaluated on $\veca$ sampled uniformly at random), known as the $decisional$-$\lwr_{n,q,2}$ assumption, we can immediately see that the $\lwr$ function is a pseudorandom function. It is also very easy to see that it is not a strong PRF, because one can learn the $j$th most significant bit of the $i$th coordinate of $\vecs$ by making a query on input $2^{j-1}\vece_i$, where $\vece_i$ is the $i$th vector of the standard basis. 
+
+
+\paragraph{Efficient Homomorphic Evaluation of $\lwr$.}
+The main reason we opt for using $\lwr$ as our weak PRF is that, viewed in the above manner, it is \emph{identical} to the \emph{decryption function} for most lattice-based encryption schemes~\cite{DBLP:journals/jacm/Regev09}. Homomorphic evaluation of the decryption function, of course, is better known in fully homomorphic encryption (FHE) contexts as bootstrapping, where it is a central operation necessary to allow unbounded homomorphic computation~\cite{GentryThesis09}. A large body of work has focused on optimizing the evaluation of this function for various fully homomorphic encryption schemes~\cite{DBLP:conf/pkc/GentryHS12,DBLP:conf/crypto/Alperin-SheriffP13,DBLP:conf/pkc/OrsiniPS15,DBLP:conf/eurocrypt/HaleviS15}, but for our purposes, we are particularly interested in those works focused on bootstrapping LWE ciphertexts using the Gentry-Sahai-Waters (GSW) ~\cite{DBLP:conf/crypto/GentrySW13} encryption scheme~\cite{DBLP:conf/crypto/Alperin-SheriffP14,DBLP:conf/pkc/HiromasaAO15,DBLP:conf/eurocrypt/DucasM15,cryptoeprint:2016:870}.
+
+
+This interests stems from the extreme similiarities between homomorphic evaluations over GSW ciphertexts and homomorphic evaluations over key-homomorphic trapdoor functions. In particular, as has been noted implicitly by Gorbunov and Vinayagamurthy, the cost of a given sequence of homomorphic operations in terms of error growth in GSW ciphertexts is essentially identical to the cost of that same sequence of operations in terms of trapdoor growth over key-homomorphic trapdoor functions~\cite{DBLP:conf/asiacrypt/GorbunovV15}.
+
+As a result, algorithms using the GSW encryption scheme to boostrap LWE can in fact be used in our context to homomorphically evaluate the $\lwr$ function over key-homomorphic trapdoor functions. While FHE has generally become known for its inefficiency, and it is indeed very very far away from being useful for its main intended use, a single bootstrapping operation has recently moved much closer to efficiency. An implementation by Ducas and Miccancio~\cite{DBLP:conf/eurocrypt/DucasM15} in the ring setting was notably able to implement bootstrapping for plausible security parameters in about $0.6$ seconds. As homomorphic evaluation of the $\lwr$ function should be the most computationally intensive part of signing and verifying, this suggests plausibly being able to sign and verify in under a second. 
+
+
+We note that a  more recent work by Chillotti et al.~\cite{cryptoeprint:2016:870}, to appear in Asiacrypt 2016, is faster than the work of Ducas and Micciancio for similar security parameters by a factor of 12, but does not, strictly speaking, perform its evaluation over full GSW ciphertexts, and hence we cannot reasonably extrapolate anything about the speed of our construction from it.
+
+In addition to the more standard primitives of chameleon hash
+functions and weak pseudorandom functions (see below), we instantiate
+our signature scheme using Puncturable Homomorphic Trapdoor Functions
+(PHTDFs), which were introduced by Alperin-Sheriff~\cite{DBLP:conf/pkc/Alperin-Sheriff15} as an extension of the
+Gorbunov et al. definition of homomorphic trapdoor
+functions~\cite{DBLP:conf/stoc/GorbunovVW15} and the Boneh et al.
+definition of key-homomorphic trapdoor functions~\cite{DBLP:conf/eurocrypt/BonehGGHNSVV14}. PHTDFs give a formal way to encapsulate out repeatedly used properties in lattice-based signature
+schemes, and avoid having to repeat technical arguments in each new lattice-based signature schemes.
+
+
+\subsubsection{Reducing Trapdoor Growth Rates.}
+\label{sec:red-trapdoor}
+In addition to the Boyen-Li scheme, key-homomorphic trapdoor
+functions~\cite{DBLP:conf/eurocrypt/BonehGGHNSVV14} have been at the
+heart of wide variety of cryptographic constructions in recent
+years, including attributed-based encryption and predicate encryption schemes~\cite{DBLP:conf/crypto/0001P14,DBLP:conf/crypto/GorbunovVW15,DBLP:conf/stoc/GorbunovVW15}. In the standard lattice-based
+construction, a key operation is sampling a
+ matrix $\matX \in \Z_q^{m \times m}$ with small norm such that $\matG\matX=\matU \pmod{q}$ for the so-called ``gadget'' matrix $\matG$, which we denote
+$\matG^{-1}(\matU)$. 
+
+In all existing schemes using key-homomorphic trapdoor functions,
+$\matG^{-1}$ is evaluated via deterministic bit decomposition. While
+efficient (taking linear time) and fully parallelizable, it has
+downsides when trying to limit the noise growth (or trapdoor growth), as each
+column can have length as large as $m$. More concretely, when $\matG^{-1}$ is
+evaluated in this deterministic manner, for a (fixed) vector
+$\veca \in \Z^m$ and random vector $\vecu \in \Z_q^n$, we expect that 
+$\length{\inner{\veca,\matG^{-1}(\vecu)}}\approx \tfrac{m}{2}\length{\veca}$. 
+
+However, $\matG^{-1}$ can also be evaluated in a randomized manner
+(sampled).  Indeed, Miccancio and Peikert first defined and analyzed
+the gadget matrix $\matG$~\cite{DBLP:conf/eurocrypt/MicciancioP12}
+with discrete Gaussian sampling applications in mind. Using Gaussian sampling instead of
+deterministic bit decomposition to evaluate $\matG$ can reduce noise growth from $m$ to
+$\sqrt{m}$~\cite{DBLP:conf/crypto/Alperin-SheriffP14}. This ultimately
+allows for basing the security of the given scheme on a harder problem
+and allows for smaller parameters for real security against known
+attacks.
+
+For several reasons, this randomization technique has not been used in
+schemes utilizing key-homomorphic trapdoor functions.  First, in all
+key-homomorphic trapdoor function-based schemes, the function
+evaluated on the master public and secret key by the key-generating
+authority when generating a given secret key (or signature) must
+correspond to the function evaluated by a user holding that secret key
+(or signature) for a ciphertext (or a set of trapdoor functions) that
+the given secret key is authorized to decrypt (or that the given
+signature should be verifiable on).  In particular, it necessary that
+both the key-generating authority and the user perform each evaluation
+of $\matG^{-1}$ in the same manner. If a randomized version of
+$\matG^{-1}$ is used, the bits used by they key-generating authority
+in evaluating $\matG^{-1}$ will have to be transferred in some manner
+to the user holding the secret key. As many as $n$ bits are required
+in order for a single sample to be within $2^{-\Omega(n)}$ distance of
+the actual discrete Gaussian distribution when using rejection
+sampling~\cite{DBLP:conf/stoc/GentryPV08}. One can also use tables to
+help with the computation (which is advisable because rejection
+sampling does not run in so-called ``constant time''), but table
+lookups come with their own set of disadvantages
+~\cite{DBLP:journals/aaecc/DwarakanathG14}\jnote{Discuss other sampling options, Flush Gauss and Reload}.
+
+We present a much simpler randomized method of sampling $\matG^{-1}$ which is nearly as fast as bit decomposition and does not require the use of tables. We also discuss the manner 
+in which the randomness is transferred to the user. In some schemes, one is ``stuck'' with using the trivial method of including the randomness in each signature as a separate element. While this ultimately requires a signature with more elements on a conceptual level, the reduction in the size of the modulus $q$ and dimension $n$ required for an equivalent level of security that the randomized sampling allows us will more than make up for this addition, resulting in less actual bits required per signature to achieve a given security level.
+
+However, in schemes which already use a chameleon hash function to
+randomize the input messages, including but not limited
+to~\cite{DBLP:conf/pkc/Alperin-Sheriff15,DBLP:conf/eurocrypt/MicciancioP12,DBLP:conf/pkc/Boyen10,DBLP:conf/crypto/DucasM14},
+we show that we do not need to include any additional elements in the
+signature. Instead, it is sufficient to include the randomness in the
+scheme's public key, and for the signing algorithm to ``reuse'' it on
+all signatures it issues, without more than a negligible loss in
+effectiveness in reducing the rate of noise growth.
+
+\subsection{Open Problems}
+\label{sec:open-probs}
+While it provides massive improvements in the runtime of the signature scheme and improves the size of the parameters somewhat over the Boyen-Li Scheme, our scheme still requires a very large public key. The ``holy grail'' of achieving a standard-model signature scheme  with a tight reduction to a plausible hardness assumption, while keeping both signatures and public keys small, remains open. 
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "newlattsigs"
+%%% End:

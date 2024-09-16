@@ -1,0 +1,236 @@
+\section{Extended-LWE Over Module Lattices}
+\label{sec:extended-lwe-over}
+
+
+Here we show that an analogous version of the $\extlwe$ reduction
+found in~\cite{DBLP:conf/stoc/BrakerskiLPRS13} holds over module
+lattices as well. In order to prove this theorem, we follow the
+path of Brakerski et al.~\cite{DBLP:conf/stoc/BrakerskiLPRS13}.  We
+first prove the reduction to the intermediate problem
+``first-is-errorless-M-LWE'' and then proceed to prove the reduction
+from ``first-is-errorless-M-LWE.'' to $\extmlwe$.
+
+\subsection{Quality of Set}
+\label{sec:set-quality}
+Following Brakerski, et al, we define the \emph{quality} of a set
+$\calZ \subseteq \Z^{m}$.
+
+\begin{definition}\label{def:quality} For a real $\xi > 0$ and a set $\calZ \subseteq
+  K^w$,
+  we say that $\calZ$ is of \textnormal{quality} $(\xi,t)$ if given
+  any $\vecz_1, \ldots, \vecz_t \in \calZ$, we can efficiently
+  construct a unimodular matrix $\matU \in \Z^{w \times w}$ such that,
+  if $\matU' \in \Z^{w \times (w-t)}$ is the matrix obtained from
+  $\matU$ be removing its $t$ leftmost columns, then all the columns
+  of $\matU'$ are orthogonal to $\text{span}(\vecz_1,\ldots,\vecz_t)$
+  and its largest singular value is at most $\xi$.
+\end{definition}
+
+
+\subsection{First-Is-Errorless-LWE}
+\label{sec:first-errorless-lwe}
+
+As in the previous work, we have the intermediate step of
+``first-is-errorless'' $\mlwe$, in which the first inner product
+contains no error. The proof for this general case essentially follows
+that of Brakerski et al., with a few important differences stemming
+from the form of $R$ will not in general be a Euclidean domain or
+even a principal ideal domain. This requires some careful proof
+restructuring.
+\begin{definition}\label{def:first-errorless-mlwe}
+  Let $K$ be an algebraic number of field, $R=\O_{K}$ be its ring of
+  integers. Let $q>1,d\geq 2$ be integers, and let $\psi$ be a
+  distribution over $R$. Then the
+  ``first-is-errorless'' version of $\mlwe$ requires the adversary to
+  distinguish between two cases. In the first case, the adversary
+  receives $\matA \in R_q^{d \times w},\vecb = \matA^t\vecs+\vece \in
+  R_q^w$, where $\vecs \gets R_q^d$ uniformly at
+  random and $\vece \gets (0, \vece')$, where $\vece' \gets
+  \psi^{w-1}$.  In the second case, $\vecb \gets R_q^m$ uniformly at random.
+\end{definition}
+
+We first prove a brief lemma relating to the probability that the
+greatest common divisor of $qR$ and the 
+principal ideals generated  by $d$
+elements chosen uniformly at random modulo $R_q$  is in fact all of
+$R$ (making all of these ideals coprime). 
+\begin{lemma}\label{lem:prob-relprime}
+Let $q=\prod_{i \in
+    [\ell]}p_i^{e_i}$. Let $R=\calO_{m}$ and write $m=\bar{m}\cdot
+  p_i^{\kappa_i}$, where $p \nmid \bar{m}$. Let $f_i$ be the
+  multiplicative order of $p_i$ modulo $\bar{m}$. Let $a_1, \ldots,
+  a_d \gets R_q$ uniformly at random (strictly speaking, elements in
+  $R$ from
+  some canonical set of representatives of $R_q$). Then we have that 
+$R=\gcd(qR,\inner{a_1},\ldots,\inner{a_d})=qR+\inner{a_1}+\ldots+\inner{a_d}$,
+except with probability at most
+\begin{equation}
+\label{eq:upp-bound-lin-ind}\sum_{i \in
+  \ell}\left(\frac{\varphi(\bar{m})}{f_i}p_i^{-d\cdot f_i} \right)
+\end{equation}
+\end{lemma}
+\begin{proof}
+  We have that the sum of all the ideals above will be equal to $R$
+  unless $a_1, \ldots, a_d$ all lie in some prime ideal $\frakp_i$ of
+  $qR$.  Recall from~\ref{par:ideal-fact} that a prime ideal
+  $\frakp_{i,j}$ dividing $p_iR$ has norm
+  $\length{R/\frakp_{i,j}}=p_i^{f_i}$, the probability of this event
+  is at most $p_i^{-d\cdot f_i}$. Equation~\ref{eq:upp-bound-lin-ind}
+  then follows from a simple union bound.
+\end{proof}
+
+
+We now prove the reduction.
+\begin{lemma}\label{lem:first-errorless}
+  Let $d \geq 2$, $w$, $q > 1$, $R=\calO_{m}$, $\psi$ be an error distribution
+  over $R$. There is an efficient (transformation) reduction
+  from $\mlwe_{R,d-1,w-1,q,\psi}$ to the first-is-errorless variant of
+  $\mlwe_{R,d,w,q,\psi}$ that reduces the advantage by at most
+$\sum_{i \in
+  \ell}\left(\frac{\varphi(\bar{m})}{f_i}p_i^{-d\cdot f_i} \right)$, where
+  $f_i$ and $\bar{m}$ are as defined in Lemma ~\ref{lem:prob-relprime}.
+\end{lemma}
+
+\begin{proof}
+  The reduction first chooses $\veca'\gets R_q^d$. 
+If we have that $qR+\inner{a'_1}+\ldots+\inner{a'_d} \subset R$, the reduction
+aborts. Otherwise, it finds, via a generalization of the
+  Euclidean algorithm~\cite{extendeuclidideals}, a $d \times d$
+  invertible matrix  $\matR \in R_q^{d \times d}$ such that
+  $\matR\veca'=(1,0,\ldots,0)^t$, and sets $\matU = \matR^{-1}$.  
+
+It also picks a uniform element $s_0 \in
+R_q$. It then outputs $(\veca', s_0)$  as the first sample. For
+each of the $w-1$ remaining samples, it first samples $(\veca,b)$ from
+the given $\mlwe$ oracle, picks a fresh uniformly random $d \in
+R_q$, and outputs $(\matU(d|\veca), b+ (s_0\cdot d)$, where the
+vertical bar denotes concatenation. 
+
+Conditioned on not aborting, we will verify that the
+output is distributed according $\mlwe_{R,d,m,q,\psi}$. Combining this
+with the bound in Lemma~\ref{lem:prob-relprime} will give our desired result.
+
+We now verify correctness, conditioned on not aborting. First, we consider the
+case that
+$(\veca,b)$ samples are uniform and independent. In this case it is
+easy to see that the outputs remain uniform, since $(d|\veca)$ is
+uniform, $\matU$ is invertible, and each $b$ is uniform and independent of
+everything else. Secondly, if the samples are from $\mlwe$ with
+respect to a secret $\vecs$, it is easy to verify that the outputs are
+distributed according to the first-is-errorless variant
+$\mlwe_{R,d,w,q,\psi}$ with secret $\vecs'=\matR^{t}(s_0|\vecs)
+\bmod{q}$. Since $\matU$ is invertible modulo $q$ and $(s_0|\vecs)$ is
+uniform, so is $\vecs'$, which proves correctness.
+\end{proof}
+
+By iterating this reduction and applying a union bound, we immediately have the following
+corollary which gives a reduction to a first-$t$-are-errorless variant
+of $\mlwe$. We use this corollary in the next section to reduce to
+$\extmlwe$ with $t$ hints.
+\begin{corollary}\label{lem:first-t-errorless}
+  Let $d > t \geq 0$, $w$, $q > 1$,  $R=\calO_{m}$, $\psi$ be an error
+  distribution over $R$. There is an efficient (transformation) reduction from
+  $\mlwe_{R,d-t,w-t,q,\psi}$ to the first-$t$-are-errorless variant of
+  $\mlwe_{R,d,w,q,\psi}$ that reduces the advantage by at most
+  $t \sum_{i \in
+  \ell}\left(\frac{\varphi(\bar{m})}{f_i}p_i^{-(d-t)\cdot f_i} \right)$, where
+  $f_i$ and $\bar{m}$ are as defined in Lemma ~\ref{lem:prob-relprime}.
+\end{corollary}
+
+In order for our reduction to ``first-is-errorless'' $\mlwe$ to be
+meaningful when $d-t$ is much smaller than linear in the underlying
+security parameter $\kappa$ (as it will be in the case we are
+interested in for our reduction to $\mlwr$), we will require that all
+of the prime ideals of $qR$ have norms superpolynomially large in the
+security parameter (which makes the reduction in advantage
+negligible). This is the case for many if not most practical choices
+of $R$ and $q$. Similar conditions were required by Ducas and
+Micciancio~\cite{DBLP:conf/crypto/DucasM14} for the ring used in their
+signature scheme, although they were significantly further restricted
+because they needed the prime ideals to be exponentially large in the
+security parameter. As in their work, for a concrete example of
+choices of $R$ and $q$ for which this reduction is meaningful, we can
+take $R$ to have index $2^{k}$ and let $q=3^{\ell}$. In fact, for $R$
+of index $2^{k}$, noting that $\Z_{2^k}^* \equiv \Z_2 \oplus
+\Z_{2^{k-2}}$, we have asymptotically by the prime number theorem for
+arithmetic progressions~\cite{soprounov2010short} that the density
+of all primes (and their powers) that are admissible as prime factors of
+the modulus $q$ for which the reduction is meaningful is $1-1/2^{k-1}$
+
+\subsection{First-Is-Errorless to Extended-LWE}
+\label{sec:first-errorl-extend}
+
+We now show a reduction from ``first-t-are-errorless'' $\mlwe$ to
+$\extmlwe$. The reduction primarily follows that of Brakerski et al.,
+with slight differences to account for the multiple samples, as well
+as a correction of some small mistakes in the proof therein. 
+\begin{lemma}
+Let $\calZ \subseteq K^d$ be of quality $(\xi > 0,t)$. Then for any $n, q
+> 1, \epsilon \in (0,1/2)$, $\alpha, r \geq
+(\ln(2w(1+1/\epsilon))/\pi)^{1/2}/q$, $t < d$, there is a (transformation)
+reduction from the first-$t$-are-errorless variant of
+$\mlwe_{R,d,w,q,\alpha}$ to
+\\$\extmlwe_{R,d,w,q,(\alpha^2\xi^2+r^2)^{1/2},\calZ,t}$ that reduces
+the advantage by at most $16\epsilon$. 
+\end{lemma}
+
+\begin{proof}
+The reduction proceeds as follows. Given $\vecz_1, \ldots, \vecz_t \in
+\calZ$, we compute the unimodular $\matU \in \Z^{d \times d}$ that can
+be efficiently computed as in Definition~\ref{def:quality}, and let
+$\matU' \in \Z^{d \times (d-t)}$ be the matrix formed by removing the
+  $t$ leftmost columns of $\matU$. We receive $m$ samples $(\matA \in
+  \R_q^{d \times w}, \vecb \in \R_q^{w})$ from our
+  ``first-$t$-errorless'' $\mlwe$ oracle. We
+  then sample 
+$\vecf \gets D_{\alpha(\xi^2\matI-\matU\matU^t)^{1/2}}$. The above distribution is well-defined since
+  $\xi^2\matI-\matU'\matU'^t$ is a positive semidefinite matrix
+  according to our assumption on $\matU$. 
+
+The reduction then sets $\bar{\vecb}=\matU\vecb+\vecf$, and samples 
+$\vecc$ from the discrete Gaussian distribution
+$D_{q^{-1}R^{w}-\bar{\vecb},r}$. It then outputs 
+\[(\matA'=\matA\matU^t,\vecb'=\bar{\vecb}+\vecc,(\trace(\inner{\vecz_i,\vecf+\vecc}))_{i
+  \in [t]}) \in R_q^{d \times w} \times R_q^{w} \times \Q_q^{t}\]
+
+We now analyze correctness of the reduction. First, we have that
+$\matU$ is invertible, so that $\matA'=\matA\matU^{t}$ is uniform
+solely over the choice of $\matA$. For the remainder of the proof we
+condition on any fixed value of $\matA'$ and focus on analyzing the
+distribution of the second and third components of the output.
+
+First, consider the case that the samples received by our reduction
+came from the first-$t$-are-errorless variant of $\mlwe$. Then we have
+that 
+\[\bar{\vecb}=\matU\vecb+\vecf=\matA'^t\vecs+\matU\vece+\vecf \]
+
+We have that $\matU\vece$ is distributed as a continuous Gaussian
+$D_{\alpha\matU}$, so by additivity of Gaussians, we have that
+$\matU\vece+\vecf$ is distributed as a spherical continuous Gaussian
+$D_{\alpha\xi}$. Since $\matA'^{t}\vecs \in R_q^w$, we have
+that $\vecc$ is in fact distributed according to
+$D_{q^{-1}R^{w}-\bar{\vecb},r}$.  As a result, by
+Lemma~\ref{lem:latt-facts}, 
+$\matU\vece+\vecf+\vecc$ is within statistical distance $8\epsilon$ of
+$D_{q^{-1}R^{w},(\alpha^2\xi^2+r^2)^{1/2}}$, which shows that $\vecb'$
+is distributed correctly. For the third component, since
+the first $t$ elements of $\vece$ are zero and the last $d-t$
+columns of $\matU$ are orthogonal to each $\vecz_i$, we have that 
+\[\inner{\vecz_i,\vecf+\vecc}=\inner{\vecz_i,\matU\vece+\vecf+\vecc},\]
+so the third component gives the inner product of the noise with each
+vector $\vecz_i$, as desired. 
+
+Finally, we consider the case where the samples received by our
+reduction are truly uniform. Then since $\vecb$ is truly uniform and
+independent, we can view it as being distributed as
+$\vecb=\tilde{\vecb}+\vece$, where $\tilde{\vecb} \in R_q^{w}$
+is truly uniform and $\vece$'s first $t$ coordinates are $0$, and the
+remaining coordinates are chosen independently from $D_{\alpha}$. Then
+we have that $\vecb'=\matU\tilde{\vecb}+\matU\vece+\vecf+\vecc$, where
+$\matU\vece+\vecf+\vecc$ is distributed exactly as in the case
+above. Since $\matU$ is unimodular, we have that
+$\matU(\tilde{\vecb}+\vece)$ is uniform and independent over
+$R_q^{w}$. Finally, since $\matU\vece+\vecf+\vecc$ is distributed
+exactly as above, we also have that the third component output is
+distributed correctly, as needed.
+\end{proof}

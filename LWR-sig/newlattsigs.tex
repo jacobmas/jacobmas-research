@@ -1,0 +1,90 @@
+\newif\iflncs\lncstrue
+\documentclass[oribibl,envcountsect,envcountsame]{llncs}
+%\usepackage{times}
+%\usepackage{fullpage}
+\usepackage{hyperref,microtype}
+\usepackage{amsmath,amsfonts,amssymb}
+% mathabx overrides many math fonts with ugly ones; instead, add
+% individual commands in head.tex (see declaration of \boxplus etc.)
+%\usepackage{mathabx}
+%\usepackage[amsmath,amsthm,thmmarks,hyperref]{ntheorem}
+
+\linespread{1.4}
+\usepackage{float}
+\usepackage{mathtools}
+\usepackage{url}
+\usepackage{xspace}
+\usepackage{enumitem}
+\pagestyle{plain}
+% show equation numbers only for referenced equations
+%\mathtoolsset{showonlyrefs}
+
+%\newif\iffull\fulltrue
+
+\input{head}
+%\input{paperhead}
+
+
+\newcommand{\setbad}{\textsf{BAD}}
+\newcommand{\setguesses}{\textsf{GUESSES}}
+%\newcommand{\PRF}{\algo{PRF}}
+\newcommand{\CHF}{\algo{CHF}}
+
+\usepackage{xcolor}
+\newcommand{\daniel}[1]{{\color{blue}Daniel: #1}}
+\newcommand{\todo}[1]{{\color{red}TO-DO: #1}}
+
+
+
+
+%%%%
+
+\title{Weak is Better: Tightly Secure Short Signatures from Weak PRFs}
+
+\author{Jacob Alperin-Sheriff\inst{1}\thanks{Most of this work was
+    performed while the author was at the University of Maryland}\and Daniel Apon\inst{2}\thanks{This work was performed under financial assistance award 70NANB15H328
+from the U.S. Department of Commerce, National Institute of Standards
+and Technology.}}
+\institute{National Institute of Standards and
+  Technology,\\\email{jacob.alperin-sheriff@nist.gov} \and
+University of Maryland,\\\email{dapon@cs.umd.edu}}
+ 
+
+\begin{document}
+ % \floatstyle{boxed}
+ % \restylefloat{figure}
+
+\maketitle
+\thispagestyle{empty}
+\begin{abstract}
+ % \noteswarning
+  
+\input{abstract}
+
+\end{abstract}
+
+% \paragraph{Keywords.} fully homomorphic encryption, bootstrapping,
+% lattice-based cryptography
+
+\clearpage
+\pagenumbering{arabic} 
+\input{intro}
+\input{prelims}
+
+\input{lwelwr}
+\input{functioneval}
+\input{trapdoorgrowth}
+
+%\input{extlwe}
+%\input{lwetolwr}
+
+\bibliographystyle{alpha}
+\bibliography{lattices,crypto,ibe,fhe,numtheory}
+
+\end{document}
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

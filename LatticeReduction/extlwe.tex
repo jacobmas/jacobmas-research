@@ -1,0 +1,491 @@
+\section{Extended-LWE}
+\newcommand{\ExptUnif}{\algo{ExptUnif}}
+\newcommand{\ExptLWE}{\algo{ExptLWE}}
+
+\label{sec:ext-lwe}
+In this section we define $\extlwe$ and its variants, and give an
+improved reduction from $\lwe$ to $\extlwe$\iflncs. We defer a
+reduction from $\mlwe$ to $\extmlwe$ to the full version due to space considerations. \else, and a
+reduction from $\mlwe$ to $\extmlwe$.\fi
+
+\subsection{Definitions}
+\label{sec:definitions}
+
+We provide a definition of the problem in the context of module
+lattices ($\extmlwe$), following the definition of Brakerski et
+al. for regular $\extlwe$~\cite{DBLP:conf/stoc/BrakerskiLPRS13}.
+
+\begin{definition}\label{def:extmlwe}For a number field $K$ with ring of integers $R$,
+  dimensional parameters $d, w \in \Z$, modulus $q \geq 1$, a set
+  $\calZ \subseteq K^{d}$, a parameter $k$ for the number of
+  hints, and a distribution $\psi$ over $R$, the
+  $\extmlwe_{R,d,w,q,\psi,k,\calZ}$ problem is defined as follows: The
+  challenger gets to choose $\vecz_1, \ldots, \vecz_{k} \in \calZ$ and
+  receives back a tuple
+$(\matA, \vecb, (\trace(\inner{\vece,\vecz_{i}}))_{i \in [k]}) \in R_q^{d
+  \times w} \times R_q^{w} \times \Q_q^k$.
+
+The goal is to distinguish between two cases. In the first, which we
+refer to as the $\extmlwe$ distribution, $\matA$ is
+chosen uniformly at random, $\vece \gets \psi^{w}$, and $\vecb =
+\matA^{t}\vecs+\vece \pmod{q}$ for $\vecs$ chosen uniformly at
+random. The second case, which we refer to as the uniform distribution, is identical, except that $\vecb$ is chosen
+uniformly at random and independently of everything else.
+When $\psi=D_{\alpha}$, we sometimes write
+$\extmlwe_{R.d,w,q,\alpha,k,\calZ}$ to mean
+$\extmlwe_{R.d,w,q,D_{\alpha},\calZ}$, and when the ring $R$ and
+$\calZ$ are clear in context, we often omit them.
+\end{definition}
+
+\iflncs In Section~\ref{sec:redlwelwr}, $\calZ$ will be the set of
+(scaled down by the dimension of $K$) columns of the identity matrix
+$\matI_{w}$. For a more thorough definition, see Section~\ref{sec:set-quality}.
+\else
+Following Brakerski, et al, we define the \emph{quality} of a set
+$\calZ \subseteq \Z^{m}$.
+
+\begin{definition}\label{def:quality} For a real $\xi > 0$ and a set $\calZ \subseteq
+  K^w$,
+  we say that $\calZ$ is of \textnormal{quality} $(\xi,t)$ if given
+  any $\vecz_1, \ldots, \vecz_t \in \calZ$, we can efficiently
+  construct a unimodular matrix $\matU \in \Z^{w \times w}$ such that,
+  if $\matU' \in \Z^{w \times (w-t)}$ is the matrix obtained from
+  $\matU$ be removing its $t$ leftmost columns, then all the columns
+  of $\matU'$ are orthogonal to $\text{span}(\vecz_1,\ldots,\vecz_t)$
+  and its largest singular value is at most $\xi$.
+\end{definition}
+
+For our reduction in Section~\ref{sec:redlwelwr}, we will have $\calZ$
+be the set of (scaled down by the dimension of $K$) columns of the
+identity matrix $\matI_{w}$. We can easily see that $\calZ$ is of
+quality $(1,t)$ for all $t < w$ by letting $\matU$ be a suitable
+permutation of the rows of the identity matrix.
+\fi
+
+
+%\input{misclemmas}
+
+\subsection{Reduction from LWE for Arbitrary  Moduli}
+\label{sec:impr-reduct-over}
+
+Here we give an improved dimension-preserving reduction from LWE to
+extended LWE. This reduction can handle any (polynomially-sized)
+modulus, while the previous reduction by Alperin-Sheriff and Peikert required that all prime factors
+of the modulus be (with overwhelming probability) larger by a factor
+of 2 than the inner product of the hint vector with the error
+vector~\cite{DBLP:conf/pkc/Alperin-SheriffP12}.
+
+To aid clarity, we follow the previous work and give our reduction in
+terms of the knapsack forms of $\lwe$ and $\extlwe$. We recall that a
+(tight) equivalence between $\lwe$ and its knapsack form applies for
+$m \geq n + \omega(\log{n})$. For a proof,
+consult~\cite[Lemmas 4.8 and 4.9]{DBLP:conf/crypto/MicciancioM11}.
+
+
+To prove our result, we define a hybrid variant of $\extlwe$, which we
+denote as $\extlwe^{d}$. Our definition is somewhat similar
+to the hybrid variant of $\lwe$ appearing in the proofs of previous
+search-to-decision $\lwe$ reductions,
+e.g.~\cite{DBLP:conf/eurocrypt/MicciancioP12}. In this form, one is
+given $\matH \in \Z_q^{(m-n) \times m}$, $\vecc \in \Z_q^{m-n}$, and
+one must determine whether $\vecc$ is uniformly or random or equal to
+$\vecc=\matH\vecx$ for $x \gets \chi^m$. 
+
+
+Upon
+receiving $\vecz$, $\extlwe_{n,m,q,\chi}^{d}$ outputs $(\matH \gets \Z_q^{(m) \times (m+n)}, \vecc=\matH\vecx+d\vecv
+\bmod{q}, \vecz, \inner{\vecx,\vecz})$,
+where $\vecx \gets \chi^{m+n}$ and $\vecv \gets \Z_q^{m}$ uniformly at
+random. We have that $\extlwe_{n,m,q,\chi}^{q}=\extlwe$ and
+$\extlwe_{n,m,q,\chi}^1=U$ is the uniform distribution.
+
+First we prove a lemma which establishes that a sufficiently large
+advantage in distinguishing $\extlwe_q^d$ from uniform (where sufficiently large is
+both absolute and relative to the advantage for smaller factors) must exist for
+some factor $d$ of $q$. The form of the advantage here is chosen to
+make our proof go through. 
+ 
+\begin{lemma}\label{lem:general_mod}
+  Let $\Adv$ be an algorithm with advantage $\epsilon>0$ in
+  distinguishing between $\extlwe_q$ and uniform for some
+  $q=\poly(\lambda)$. Then for any constant $k \geq 0$, $\exists$ a minimal
+  factor $d$ of $q$ such that the advantage of $\Adv$ in
+  distinguishing $\extlwe_q^{1}$ and $\extlwe_q^{d}$ is at least
+  $\epsilon/(q/d)^k$, and it can be found efficiently (in
+  $\poly(\lambda)$ time).
+\end{lemma}
+
+\begin{proof}
+  By hypothesis, $\Adv$ has advantage $\epsilon$ in distinguishing
+  $\extlwe_q^{1}$ and $\extlwe_q^{q}$, so $d=q$ satisfies the
+  conditions of lemma, and therefore by the well-ordered principle a
+  minimal such $d>1$ must exist (that $d$ must be greater than $1$ is
+  obvious since at $1$ the distributions are identical). Moreover, we
+  can find the minimal $d$ efficiently by testing the behavior of
+  $\Adv$ on input from $\extlwe_{q}^{d}$ for every factor $d$. Note
+  that the factors $d$ of $q$ can be found efficiently via trial
+  division since $q$ itself is polynomially sized.
+\end{proof}
+
+The following two lemmas will allow us to bound the probability of
+each hybrid $\extlwe^{d}$ occurring in our main proof.
+
+\begin{lemma}\label{lem:monotonicity}Let $q>1$ be an arbitrary integer,
+  $\chi$ be a discrete Gaussian distribution (with arbitrary parameter).
+Then for all $f, d$ such that $f \mid d \mid q$, 
+\[\Pr_{t \gets \chi}[\gcd(t,q)=f \text{ and } t \neq 0] \geq \varphi(d/f)\Pr_{t
+  \gets \chi}[d \mid \gcd(t,q) \text{ and } t \neq 0]\]
+\end{lemma}
+
+\begin{proof}
+Noting that a Gaussian distribution
+is always monotonically decreasing as a function of the \emph{absolute
+value} of $x$, the inequality follows immediately from the definition of the Euler phi function.\end{proof}
+
+\begin{corollary}\label{cor:prob_val}
+Let $q > 1$ be arbitrary, $\chi$ be a discrete Gaussian distribution
+with arbitrary parameter. Then for all $f \mid d \mid q$,  $1 \leq f <
+d$, $\Pr_{t \gets \chi}[f = \gcd(t,d)] \leq \tfrac{1}{f}$.
+\end{corollary}
+\begin{proof}
+Using Lemma~\ref{lem:monotonicity} for the third inequality and the
+property that $n=\sum_{d \mid n} \varphi(n/d)$ for the fourth equality   we have that 1
+\begin{align*}
+\geq \sum_{x \mid d}\Pr_{t \gets \chi}[(t,d)=x, t
+    \neq 0]&\geq \sum_{x \mid f}\Pr_{t \gets \chi}[(t,d)=x, t \neq
+  0]\\
+\geq \sum_{x \mid f} \varphi(f/x)\Pr_{t \gets \chi}[f \mid (t,d),  t
+  \neq 0]&=f\Pr_{t \gets \chi}[f \mid (t,d), t \neq 0]&\geq f\Pr_{t \gets \chi}[f = (t,d)]\\
+\end{align*}
+\end{proof}
+\begin{lemma}\label{lem:prob_d}
+Let $\chi$ be a probability distribution over the integers, symmetric
+about the origin, such that the probability of $x$ decreases
+monotonically as a function of the \emph{absolute value} of $x$. Then
+$\Pr_{t \gets \chi}[\gcd(t,d)=d] \geq \tfrac{1}{2d-1}$.
+\end{lemma}
+\begin{proof}
+We have 
+\begin{align*}
+\Pr_{t \gets
+  \chi}[\gcd(t,d)=d]&=\frac{\Pr[t=0]+2\sum_{i=1}^{\infty}\Pr[t=di]}{\Pr[t=0]+2\sum_{i=1}^{\infty}\sum_{j=0}^{d-1}\Pr[t=di+j]}\\
+&\geq
+  \frac{\Pr[t=0]+2\sum_{i=1}^{\infty}\Pr[t=di]}{(2d-1)\Pr[t=0]+2d\sum{i=1}^{\infty}\Pr[t=di]}
+  & 
+\geq \frac{1}{2d-1}.
+\end{align*}
+\end{proof}
+
+\begin{theorem}\label{thm:main_new_extlwe}Let $\chi=D_{\Z,s}$ be a
+  discrete Gaussian with parameter $s$. Let $q=\poly(\lambda)$ for
+  some parameter $\lambda$.
+  $\Adv$ be an algorithm succeeding in time $t$ with advantage $\epsilon$ in
+  distinguishing $\extlwe_{n,m,q,\chi}$ and uniform. Then there exists an algorithm
+  $\Adv'$ succeeding in time $t+\poly(\lambda)$ with advantage at
+  least $\epsilon/q^4$ in distinguishing $\lwe_{n,m,q,\chi}$ from uniform.
+\end{theorem}
+\begin{proof}
+  By Lemma~\ref{lem:general_mod}, for any given constant $k$ (to be optimized below) we can efficiently find the minimal $d$ such
+  that $\Adv$ distinguishes between $\extlwe_{n,m,q,\chi}^{1}$ and
+  $\extlwe_{n,m,q,\chi}^{d}$ with advantage at least
+  $\epsilon/(q/d)^k$. 
+
+  We show how to use $\Adv$ to distinguish between $\lwe$ and
+  uniform.  We receive a matrix $\matH \in \Z_q^{m \times (m+n)}$
+  and a vector $\vecc \in \Z_q^{m}$  We then
+  receive $\vecz \in \Z_q^{m+n}$ from $\Adv$ and sample
+  $\vecx' \gets \chi^{m+n}$, $\vecv \gets \Z_q^{m}$,
+  $\vecw \gets \Z_q^{m}$ and let $\matH' = \matH - \vecv\vecz^t,\quad \vecc' = \vecc -
+\vecv\inner{\vecz,\vecx'}+d\vecw$. We then run $\Adv$ on $(\matH',
+\vecc',\vecz,\inner{\vecx',\vecz})$. If $\Adv$ outputs accept, we output
+$\lwe$, and if $\Adv$ outputs reject, we output uniform.
+
+
+We now analyze our success probability. Let $\delta$ be the
+probability that $\Adv$ accepts on $\extlwe^{1}$.  Without loss of
+generality (by flipping the output bit of $\Adv$ above, if necessary) $\Adv$ accepts
+on $\extlwe^{d}$ with probability at least $\delta+\epsilon/(q/d)^k$.
+
+First, consider the case that our input was from the uniform distribution, then it is easy
+to see that our output to $\Adv$ is always $\extlwe^{1}$. (the uniform
+distribution).
+
+
+Now, consider the case that our input was from $\lwe$, so $\vecc=\matH\vecx$. Then our output
+to $\Adv$ is 
+$\matH'=\matH-\vecv\vecz^t,\quad \vecc'=\matH'\vecx+\vecv\inner{\vecz,\vecx-\vecx'}+d\vecw$.
+Let
+$d'=\inner{\vecz,\vecx-\vecx'}=\inner{(\vecz,\vecz),(\vecx,-\vecx')}$,
+and note that $d'$ is distributed according to $D_{\Z,s\sqrt{2}\length{\vecz}}$.
+Now,  let $g=\gcd(d,d')$, so
+$gt=d, gt'=d$ for some coprime $t,t'$. The
+Chinese Remainder Theorem gives that $\vecy=t\vecv+t'\vecw$ is uniform $\bmod{q/g}$,
+so $\vecc'=\matH'\vecx+g\vecy$ for a uniform $\vecy$, and our output to $\Adv$ is
+distributed exactly according to
+$\extlwe^{g}$. 
+
+By the condition on the minimality of $d$, for all $g \mid d$,
+$\Adv's$ advantage in distinguishing $\extlwe^{g}$ and
+$\extlwe^1$ is at most $\epsilon/(q/g)^k$, so it must be the case that
+$\Adv$ accepts with probability \emph{at least}
+$\delta-\epsilon/((q/g)^k)$ on input $\extlwe^{g}$.
+
+
+Let $E$ be the event that $\Adv$ accepts on our output to it, given
+that our input is $\lwe$. 
+We have that
+\begin{align*}
+\Pr[E]-\delta&=(\sum_{f\mid d}\Pr[g=f]\Pr[E \mid g=f]) - \delta &\geq \tfrac{\epsilon}{q^k}\tfrac{d^k}{(2d-1)} - \sum_{1 < f<d}\Pr[g=f]f^k\\
+&\geq \tfrac{\epsilon}{q^k}(\tfrac{d^k}{2d-1} - \sum_{1<f<d, f \mid
+  d}f^{k-1})
+&\geq \tfrac{\epsilon d^{k-1}}{q^k}(\tfrac{d}{2d-1} - \sum_{1<f<d, f \mid
+  d}\tfrac{1}{f^{k-1}})\\
+&\geq  \tfrac{\epsilon
+  d^{k-1}}{q^k}(\tfrac{d}{2d-1}-\sum_{f=2}^{\infty}\tfrac{1}{f^{k-1}})
+&= \tfrac{\epsilon d^{k-1}}{q^{k}}(\tfrac{d}{2d-1} - (\zeta(k-1)-1)),
+\end{align*}
+where the second inequality follows from Lemma~\ref{lem:prob_d} and our
+condition on $d$, the third inequality follows from Corollary~\ref{cor:prob_val}
+ and the last equality follows from the definition of the Riemann zeta
+ function.
+
+The optimal value of $k$ is such that $\zeta(k-1)-1$ is just a
+bit smaller than $0.5$, say $k=3.2$. We then have that $\min_{d \geq 2 \in \Z}(d^{3.2}(1/(2d-1)-(\zeta(2.2)-1)) \geq .8$.
+
+As a result, for our choice of $k=3.2$,
+$\Pr[E] \geq \delta+.8\epsilon/q^{3.2}$, and so we can distinguish
+$\lwe$ and uniform with advantage at least $.8\epsilon/q^{3.2}$.
+\end{proof}
+\iflncs
+\else
+We note that bounding the sum with the zeta function above results in
+a rather loose bound and that significantly tighter bounds can be
+achieved for most moduli. 
+\fi
+\iflncs
+\else
+\subsection{Extended-LWE Over Module Lattices}
+\label{sec:extended-lwe-over}
+
+
+Here we show that an analogous version of the $\extlwe$ reduction
+found in~\cite{DBLP:conf/stoc/BrakerskiLPRS13} holds over module
+lattices as well. In order to prove this theorem, we follow the
+path of Brakerski et al.~\cite{DBLP:conf/stoc/BrakerskiLPRS13}.  We
+first prove the reduction to the intermediate problem
+``first-is-errorless-M-LWE'' and then proceed to prove the reduction
+from ``first-is-errorless-M-LWE.'' to $\extmlwe$.
+
+
+\subsubsection{First-Is-Errorless-LWE}
+\label{sec:first-errorless-lwe}
+
+As in the previous work, we have the intermediate step of
+``first-is-errorless'' $\mlwe$, in which the first inner product
+contains no error. The proof for this general case essentially follows
+that of Brakerski et al., with a few important differences stemming
+from the form of $R$ will not in general be a Euclidean domain or
+even a principal ideal domain. This requires some careful proof
+restructuring.
+\begin{definition}\label{def:first-errorless-mlwe}
+  Let $K$ be an algebraic number of field, $R=\O_{K}$ be its ring of
+  integers. Let $q>1,d\geq 2$ be integers, and let $\psi$ be a
+  distribution over $R$. Then the
+  ``first-is-errorless'' version of $\mlwe$ requires the adversary to
+  distinguish between two cases. In the first case, the adversary
+  receives $\matA \in R_q^{d \times w},\vecb = \matA^t\vecs+\vece \in
+  R_q^w$, where $\vecs \gets R_q^d$ uniformly at
+  random and $\vece \gets (0, \vece')$, where $\vece' \gets
+  \psi^{w-1}$.  In the second case, $\vecb \gets R_q^m$ uniformly at random.
+\end{definition}
+
+We first prove a brief lemma relating to the probability that the
+greatest common divisor of $qR$ and the 
+principal ideals generated  by $d$
+elements chosen uniformly at random modulo $R_q$  is in fact all of
+$R$ (making all of these ideals coprime). 
+\begin{lemma}\label{lem:prob-relprime}
+Let $q=\prod_{i \in
+    [\ell]}p_i^{e_i}$. Let $R=\calO_{m}$ and write $m=\bar{m}\cdot
+  p_i^{\kappa_i}$, where $p \nmid \bar{m}$. Let $f_i$ be the
+  multiplicative order of $p_i$ modulo $\bar{m}$. Let $a_1, \ldots,
+  a_d \gets R_q$ uniformly at random (strictly speaking, elements in
+  $R$ from
+  some canonical set of representatives of $R_q$). Then we have that 
+$R=\gcd(qR,\inner{a_1},\ldots,\inner{a_d})=qR+\inner{a_1}+\ldots+\inner{a_d}$,
+except with probability at most
+\begin{equation}
+\label{eq:upp-bound-lin-ind}\sum_{i \in
+  \ell}\left(\frac{\varphi(\bar{m})}{f_i}p_i^{-d\cdot f_i} \right)
+\end{equation}
+\end{lemma}
+\begin{proof}
+  We have that the sum of all the ideals above will be equal to $R$
+  unless $a_1, \ldots, a_d$ all lie in some prime ideal $\frakp_i$ of
+  $qR$.  Recall from~\ref{par:ideal-fact} that a prime ideal
+  $\frakp_{i,j}$ dividing $p_iR$ has norm
+  $\length{R/\frakp_{i,j}}=p_i^{f_i}$, the probability of this event
+  is at most $p_i^{-d\cdot f_i}$. Equation~\ref{eq:upp-bound-lin-ind}
+  then follows from a simple union bound.
+\end{proof}
+
+
+We now prove the reduction.
+\begin{lemma}\label{lem:first-errorless}
+  Let $d \geq 2$, $w$, $q > 1$, $R=\calO_{m}$, $\psi$ be an error distribution
+  over $R$. There is an efficient (transformation) reduction
+  from $\mlwe_{R,d-1,w-1,q,\psi}$ to the first-is-errorless variant of
+  $\mlwe_{R,d,w,q,\psi}$ that reduces the advantage by at most
+$\sum_{i \in
+  \ell}\left(\frac{\varphi(\bar{m})}{f_i}p_i^{-d\cdot f_i} \right)$, where
+  $f_i$ and $\bar{m}$ are as defined in Lemma ~\ref{lem:prob-relprime}.
+\end{lemma}
+
+\begin{proof}
+  The reduction first chooses $\veca'\gets R_q^d$. 
+If we have that $qR+\inner{a'_1}+\ldots+\inner{a'_d} \subset R$, the reduction
+aborts. Otherwise, it finds, via a generalization of the
+  Euclidean algorithm~\cite{extendeuclidideals}, a $d \times d$
+  invertible matrix  $\matR \in R_q^{d \times d}$ such that
+  $\matR\veca'=(1,0,\ldots,0)^t$, and sets $\matU = \matR^{-1}$.  
+
+It also picks a uniform element $s_0 \in
+R_q$. It then outputs $(\veca', s_0)$  as the first sample. For
+each of the $w-1$ remaining samples, it first samples $(\veca,b)$ from
+the given $\mlwe$ oracle, picks a fresh uniformly random $d \in
+R_q$, and outputs $(\matU(d|\veca), b+ (s_0\cdot d)$, where the
+vertical bar denotes concatenation. 
+
+Conditioned on not aborting, we will verify that the
+output is distributed according $\mlwe_{R,d,m,q,\psi}$. Combining this
+with the bound in Lemma~\ref{lem:prob-relprime} will give our desired result.
+
+We now verify correctness, conditioned on not aborting. First, we consider the
+case that
+$(\veca,b)$ samples are uniform and independent. In this case it is
+easy to see that the outputs remain uniform, since $(d|\veca)$ is
+uniform, $\matU$ is invertible, and each $b$ is uniform and independent of
+everything else. Secondly, if the samples are from $\mlwe$ with
+respect to a secret $\vecs$, it is easy to verify that the outputs are
+distributed according to the first-is-errorless variant
+$\mlwe_{R,d,w,q,\psi}$ with secret $\vecs'=\matR^{t}(s_0|\vecs)
+\bmod{q}$. Since $\matU$ is invertible modulo $q$ and $(s_0|\vecs)$ is
+uniform, so is $\vecs'$, which proves correctness.
+\end{proof}
+
+By iterating this reduction and applying a union bound, we immediately have the following
+corollary which gives a reduction to a first-$t$-are-errorless variant
+of $\mlwe$. We use this corollary in the next section to reduce to
+$\extmlwe$ with $t$ hints.
+\begin{corollary}\label{lem:first-t-errorless}
+  Let $d > t \geq 0$, $w$, $q > 1$,  $R=\calO_{m}$, $\psi$ be an error
+  distribution over $R$. There is an efficient (transformation) reduction from
+  $\mlwe_{R,d-t,w-t,q,\psi}$ to the first-$t$-are-errorless variant of
+  $\mlwe_{R,d,w,q,\psi}$ that reduces the advantage by at most
+  $t \sum_{i \in
+  \ell}\left(\frac{\varphi(\bar{m})}{f_i}p_i^{-(d-t)\cdot f_i} \right)$, where
+  $f_i$ and $\bar{m}$ are as defined in Lemma ~\ref{lem:prob-relprime}.
+\end{corollary}
+
+In order for our reduction to ``first-is-errorless'' $\mlwe$ to be
+meaningful when $d-t$ is much smaller than linear in the underlying
+security parameter $\kappa$ (as it will be in the case we are
+interested in for our reduction to $\mlwr$), we will require that all
+of the prime ideals of $qR$ have norms superpolynomially large in the
+security parameter (which makes the reduction in advantage
+negligible). This is the case for many if not most practical choices
+of $R$ and $q$. Similar conditions were required by Ducas and
+Micciancio~\cite{DBLP:conf/crypto/DucasM14} for the ring used in their
+signature scheme, although they were significantly further restricted
+because they needed the prime ideals to be exponentially large in the
+security parameter. As in their work, for a concrete example of
+choices of $R$ and $q$ for which this reduction is meaningful, we can
+take $R$ to have index $2^{k}$ and let $q=3^{\ell}$. In fact, for $R$
+of index $2^{k}$, noting that $\Z_{2^k}^* \equiv \Z_2 \oplus
+\Z_{2^{k-2}}$, we have asymptotically by the prime number theorem for
+arithmetic progressions~\cite{soprounov2010short} that the density
+of all primes (and their powers) that are admissible as prime factors of
+the modulus $q$ for which the reduction is meaningful is $1-1/2^{k-1}$
+
+\subsubsection{First-Is-Errorless to Extended-LWE}
+\label{sec:first-errorl-extend}
+
+We now show a reduction from ``first-t-are-errorless'' $\mlwe$ to
+$\extmlwe$. The reduction primarily follows that of Brakerski et al.,
+with slight differences to account for the multiple samples, as well
+as a correction of some small mistakes in the proof therein. 
+\begin{lemma}
+Let $\calZ \subseteq K^d$ be of quality $(\xi > 0,t)$. Then for any $n, q
+> 1, \epsilon \in (0,1/2)$, $\alpha, r \geq
+(\ln(2w(1+1/\epsilon))/\pi)^{1/2}/q$, $t < d$, there is a (transformation)
+reduction from the first-$t$-are-errorless variant of
+$\mlwe_{R,d,w,q,\alpha}$ to
+\\$\extmlwe_{R,d,w,q,(\alpha^2\xi^2+r^2)^{1/2},\calZ,t}$ that reduces
+the advantage by at most $16\epsilon$. 
+\end{lemma}
+
+\begin{proof}
+The reduction proceeds as follows. Given $\vecz_1, \ldots, \vecz_t \in
+\calZ$, we compute the unimodular $\matU \in \Z^{d \times d}$ that can
+be efficiently computed as in Definition~\ref{def:quality}, and let
+$\matU' \in \Z^{d \times (d-t)}$ be the matrix formed by removing the
+  $t$ leftmost columns of $\matU$. We receive $m$ samples $(\matA \in
+  \R_q^{d \times w}, \vecb \in \R_q^{w})$ from our
+  ``first-$t$-errorless'' $\mlwe$ oracle. We
+  then sample 
+$\vecf \gets D_{\alpha(\xi^2\matI-\matU\matU^t)^{1/2}}$. The above distribution is well-defined since
+  $\xi^2\matI-\matU'\matU'^t$ is a positive semidefinite matrix
+  according to our assumption on $\matU$. 
+
+The reduction then sets $\bar{\vecb}=\matU\vecb+\vecf$, and samples 
+$\vecc$ from the discrete Gaussian distribution
+$D_{q^{-1}R^{w}-\bar{\vecb},r}$. It then outputs 
+\[(\matA'=\matA\matU^t,\vecb'=\bar{\vecb}+\vecc,(\trace(\inner{\vecz_i,\vecf+\vecc}))_{i
+  \in [t]}) \in R_q^{d \times w} \times R_q^{w} \times \Q_q^{t}\]
+
+We now analyze correctness of the reduction. First, we have that
+$\matU$ is invertible, so that $\matA'=\matA\matU^{t}$ is uniform
+solely over the choice of $\matA$. For the remainder of the proof we
+condition on any fixed value of $\matA'$ and focus on analyzing the
+distribution of the second and third components of the output.
+
+First, consider the case that the samples received by our reduction
+came from the first-$t$-are-errorless variant of $\mlwe$. Then we have
+that 
+\[\bar{\vecb}=\matU\vecb+\vecf=\matA'^t\vecs+\matU\vece+\vecf \]
+
+We have that $\matU\vece$ is distributed as a continuous Gaussian
+$D_{\alpha\matU}$, so by additivity of Gaussians, we have that
+$\matU\vece+\vecf$ is distributed as a spherical continuous Gaussian
+$D_{\alpha\xi}$. Since $\matA'^{t}\vecs \in R_q^w$, we have
+that $\vecc$ is in fact distributed according to
+$D_{q^{-1}R^{w}-\bar{\vecb},r}$.  As a result, by
+Lemma~\ref{lem:latt-facts}, 
+$\matU\vece+\vecf+\vecc$ is within statistical distance $8\epsilon$ of
+$D_{q^{-1}R^{w},(\alpha^2\xi^2+r^2)^{1/2}}$, which shows that $\vecb'$
+is distributed correctly. For the third component, since
+the first $t$ elements of $\vece$ are zero and the last $d-t$
+columns of $\matU$ are orthogonal to each $\vecz_i$, we have that 
+\[\inner{\vecz_i,\vecf+\vecc}=\inner{\vecz_i,\matU\vece+\vecf+\vecc},\]
+so the third component gives the inner product of the noise with each
+vector $\vecz_i$, as desired. 
+
+Finally, we consider the case where the samples received by our
+reduction are truly uniform. Then since $\vecb$ is truly uniform and
+independent, we can view it as being distributed as
+$\vecb=\tilde{\vecb}+\vece$, where $\tilde{\vecb} \in R_q^{w}$
+is truly uniform and $\vece$'s first $t$ coordinates are $0$, and the
+remaining coordinates are chosen independently from $D_{\alpha}$. Then
+we have that $\vecb'=\matU\tilde{\vecb}+\matU\vece+\vecf+\vecc$, where
+$\matU\vece+\vecf+\vecc$ is distributed exactly as in the case
+above. Since $\matU$ is unimodular, we have that
+$\matU(\tilde{\vecb}+\vece)$ is uniform and independent over
+$R_q^{w}$. Finally, since $\matU\vece+\vecf+\vecc$ is distributed
+exactly as above, we also have that the third component output is
+distributed correctly, as needed.
+\end{proof}
+\fi
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "latticereduction"
+%%% End: 

@@ -1,0 +1,238 @@
+\section{Reducing Extended-LWE to LWR}
+\label{sec:redlwelwr}
+\begin{theorem}\label{thm:extlwe-lwr}Let $\kappa$ be a security parameter on which all other parameters depend. Let $R$ be the ring of integers of an algebraic
+  number field of dimension $n=O(\kappa)$. Let $\psi$ be an arbitrary
+  coordinate-wise $B$-bounded distribution over $R$ for some $B
+  >0$. Let $p, q, w=\poly(\kappa),d  \in \N$ such that $q \geq
+  4eBwn\kappa p$. Let $\calZ \subseteq R^d$ be the set of vectors
+  $\vecz$ such that $\trace(\inner{\vecz,\vece})$ extracts the $i$th
+  coefficient of the $j$th ring element of $\vece$ for some $i \in
+  [n], j \in [d]$.
+
+If $\exists$ a probabilistic polynomial-time $\Adv$ succeeding with
+advantage $\epsilon(\kappa) \geq (\kappa)^{-c}$ for some constant $c \geq 1$
+ in distinguishing $\mlwr_{R,d,w,q,p}$ from
+uniform, then there exists a probabilistic polynomial-time algorithm
+$\Adv'$ succeeding with  advantage $\epsilon(nw)^{-c}/4 \geq (\kappa n
+w)^{-c}/4$ in distinguishing
+$\extmlwe_{R,d,w,q,\psi,\calZ,c}$ from uniform. 
+\end{theorem}
+
+
+
+
+\subsection{The Set $\setbad$}
+\label{sec:defs-lemmas}
+Before stating our reduction, we define and prove some basic results
+about the set $\setbad_{B,q,p}$. This set, following the
+notation of~\cite{DBLP:conf/eurocrypt/BanerjeePR12}, characterizes
+those elements in $\Z_q$ that are within distance $B$ of an element
+that rounds (with $\round{\cdot}_p$ as defined above) to a different
+value than it does.
+
+\begin{definition}\label{def:setbad} For  $B, p, q \geq 1$, we define $\setbad_{B,q,p} := \{x \in \Z_q: \round{x}_p \neq \round{x\pm
+  B}_p\}.$
+\end{definition}
+
+The reason for the terminology is that, letting one of these elements
+represent a coefficient with noise (from a $B$-bounded distribution)
+in an $\mlwe$ sample, it may be the case that the noiseless version of
+these coefficients rounds to a different value than the noisy one,
+which is ``bad'' for our reduction.
+
+We recall a bound on the probability that a uniform element in $\Z_q$ is in
+$\setbad_{B,q,p}$.
+\begin{lemma}{\cite[Lemma~2.7]{DBLP:conf/crypto/AlwenKPW13}}
+\label{lem:sizebad} $\Pr_{x \gets \Z_q}[x \in \setbad_{B,q,p}] \leq 2Bp/q.$
+\end{lemma}
+
+This next lemma uses a standard Chernoff bound to upper bound the
+probability any given number of elements in a uniformly $\vecb \in
+R_q^{w}$ will be in $\setbad$.
+
+\begin{lemma}
+\label{lem:badbound}
+Let $B,q,p,\kappa,n,w$ satisfy the conditions in
+Theorem~\ref{thm:extlwe-lwr}.  Let $\vecb \gets R_q^{w}$ uniformly at
+random, and let $S = \{b_{i,j} \in \setbad_{B,q,p}\}$.  Then for all
+$c \geq 1$,
+\[\Pr[\abs{S} \geq c] \leq \kappa^{-c}/2\]
+\end{lemma}
+\begin{proof}
+  Let $X_i$ be the event that $b_i \in \setbad_{B,q,p}$.  Let $X =
+  \sum_{i \in [m]}X_i, \mu = E[X]$. First, by linearity of expectation
+  and Lemma~\ref{lem:sizebad}, we have that $\mu \leq 2Bnwp/q \leq
+  1/(2e\kappa)$.
+
+Let $\delta = \tfrac{c}{\mu}-1 > 0$. Then
+\[\Pr[X > c] <
+\left(\frac{e^{\delta}}{(1+\delta)^{1+\delta}}\right)^{\mu}
+= \frac{e^{\tfrac{\delta c}{1+\delta}}}{(1+\delta)^{c}} \leq
+\left(\frac{e}{1+\delta}\right)^c = \kappa^{-c}/(2c)^{c} \leq \kappa^{-c}/2.\]
+\end{proof}
+\subsection{Reduction}
+\label{sec:reduction}
+
+%Let $c=k+1$. 
+We begin by choosing which $c$ error elements we will receive as
+hints, by choosing uniformly at random $c$ distinct
+elements 
+\[\setguesses := \{\ell_1, \ell_2, \ldots, \ell_c \gets [w] \times [n]\},\]
+where the $\ell_{\iota}=(i_{\iota},j_{\iota})$ are tuples representing
+the $j$th coefficient of the $i$th element in the error vector $\vece
+\in R_q^{w}$.
+
+Since the trace is a ``universal'' $\Q$-linear function, there exist
+(efficiently computable) vectors $\vecz_{\ell_1}, \vecz_{\ell_2},
+\ldots, \vecz_{\ell_c}$ such that
+$\trace(\inner{\vece,\vecz_{\iota}})=\vece_{\ell_{\iota}}$ for all $i$.
+We query the $\extmlwe_{R,d,w,q,\psi,\calZ,c}$ oracle with these
+vectors, receiving back $(\matA \in R_q^{d \times w}, \vecb \in
+R_q^w,(e_{\ell_1}, \ldots, e_{\ell_c})).$
+
+Let \[T=\{(i,j) : b_{i,j} \in \setbad_{B,q,p}\},\] where
+$b_{i,j}$ refers to the $j$th coefficient of the $i$th ring element.
+We have the following abort events.
+\begin{description}
+\item[E.1] If $\abs{T} > c$, we abort.
+\item[E.2] Otherwise, if $T \not \subseteq \setguesses$, we abort.
+\item[E.3] Otherwise, we abort with
+probability 1-$1/\binom{wn-\abs{T}}{c-\abs{T}}$.  
+\end{description}
+Now, if we have not aborted, set $\tilde{\vece}_{i,j}=e_{i,j}$ if $(i,j) \in
+\setguesses$, $\tilde{\vece}_{i,j}=0$.  Let $\vecb' :=
+\round{\vecb - \tilde{\vece}}_p$, where the rounding is done
+element-wise, and let $y \gets \Adv(\matA, \vecb')$. $\Adv'$ outputs
+$y$ as its guess (where 0 corresponds to $\extmlwe/\mlwr$,
+respectively, 1 to uniform).
+
+%\end{proof}
+
+
+\subsection{Analysis}
+\label{sec:analysis}
+
+Here we prove correctness of the above reduction. To do so, we need to
+prove two things. First, we need to show that we invoke $\Adv$
+(i.e. we do not abort and output a random bit) with non-negligible
+probability. Second, conditioned on not aborting, we need to show that
+the distribution of the output sent to $\Adv$ is within statistical
+distance at most $\epsilon/2$ of the true $\mlwr$ distribution if the
+oracle samples $\vecb$ from $\extmlwe$, and within distance at most
+$\epsilon/2$ of the uniform distribution if the oracles samples
+$\vecb$ uniformly and independently.
+
+The following simple lemma shows that if the distribution of $\abs{T}$
+differed depending on whether the oracle gives samples from $\extmlwe$
+or uniform, then we would have an (alternative standalone) attack on
+$\extmlwe$. As a result, we need only consider the distribution of
+$\abs{T}$, when the oracle outputs a truly uniform $\vecb$, where it
+is simpler to analyze.
+\begin{lemma}\label{lem:t_ind} Under the $\extmlwe_{R,d,w,q,\psi,\calZ,c}$ assumption,
+  we have that 
+\[\abs{\Pr[\abs{T} > c \mid \text{oracle is \extmlwe}] - \Pr[\abs{T}
+    > c \mid \text{oracle is uniform}]} \leq \negl(n)\]
+\end{lemma}
+\begin{proof}
+  If there was a non-negligible difference in the two probabilities,
+  we could simply query the oracle and compute $\abs{T}$ to give an
+  attack on $\extmlwe_{R,d,w,q,\psi,\calZ,c}$ succeeding with non-negligible
+  probability, without having to rely on $\Adv$.\end{proof}
+
+
+We can now upper bound the probability of abort event E.1.
+\begin{lemma}\label{lem:boundE1}
+\[\Pr[\mathbf{E.1} \mid \text{oracle is }\extmlwe] \leq \negl(\kappa) + \Pr[\mathbf{E.1} \mid \text{oracle is uniform}] \leq \epsilon/2\]
+\end{lemma}
+\begin{proof}
+The first inequality is a direct consequence of Lemma~\ref{lem:t_ind}, while the second follows immediately from~\ref{lem:badbound}.
+\end{proof}
+
+
+The next lemma shows that the distribution conditioned only on $\textbf{E.1}$ not happening is exactly the same as the distribution conditioned
+on none of the abort events happening, and that the probability of none of the abort events happening is at least $(1-\epsilon/2)/\tbinom{nw}{c}$.
+
+\begin{lemma}
+\label{lem:abortequiv}
+\[\Pr[\neg (\mathbf{E.1} \vee \mathbf{E.2} \vee \mathbf{E.3})] \geq \frac{(1-\epsilon/2)}{\tbinom{nw}{c}}.\]
+Moreover, for any $\matA^* \in R_q^{d \times w},\vecb^* \in R_q^w \in \Z_q^c$, we have 
+\[\Pr[(\matA,\vecb)=(\matA^*,\vecb^*) \mid \neg \mathbf{E.1}] = \Pr[(\matA,\vecb)=(\matA^*,\vecb^*) \mid \neg (\mathbf{E.1} \vee \mathbf{E.2} \vee \mathbf{E.3})]  \]
+\end{lemma}
+\begin{proof}
+  First, we consider $\mathbf{E.2}$. Consider any fixed possible value
+  $t$ for the number of elements in $\setbad$.  For this fixed value of $\setbad$, there are
+  $\binom{nw-t}{c-t}$ possible distinct sets $\setguesses$ of indices
+  that cover all elements in $\setbad$, while there are $\binom{nw}{c}$
+  total possible distinct sets  $\setguesses$ of indices.
+
+Since the elements of $\setguesses$ are chosen uniformly and
+independent of everything else, we have that 
+
+\[\Pr[\neg \mathbf{E.2} \mid  \neg \mathbf{E.1} \wedge \abs{\setbad}=t] =
+\tbinom{wn-t}{c-t}/\tbinom{wn}{c}\]
+
+Next, by the definition of $\mathbf{E.3}$,
+\[\Pr[\neg \mathbf{E.3} \mid \neg (\mathbf{E.1} \vee \mathbf{E.2}) \wedge
+  \abs{\setbad}=t] = 1/\tbinom{wn-t}{c-t}\]
+
+
+\[\Pr[\neg \mathbf{E.3} \wedge \neg \mathbf{E.2} \mid \neg \mathbf{E.1} \wedge
+\abs{\setbad}=t] = 1/\tbinom{wn}{c}\]
+independently of $\abs{\setbad}$ and thus independently of the value of  $\matA, \vecb$ received from the
+$\extmlwe$ oracle. 
+\[\Pr[\neg \mathbf{E.3} \wedge \neg \mathbf{E.2} \mid \neg \mathbf{E.1}] =
+1/\tbinom{nw}{c}.\]
+Combining the above result with Lemma~\ref{lem:boundE1} gives
+\[\Pr[\neg (\mathbf{E.1} \vee \mathbf{E.2} \vee \mathbf{E3}] \geq
+\frac{1-\epsilon/2}{\binom{nw}{c}}\]
+\end{proof}
+
+Finally, we show that conditioned on not aborting, the samples sent to $\Adv$ are distributed sufficiently close to the desired distributions. 
+\begin{lemma}\label{lem:round-correct}
+  The distribution of $(\matA, \vecb')$ sent to $\Adv$ is within
+  statistical distance at most $\epsilon/2$ of the true $\mlwr$
+  distribution if the oracle sampled $\vecb$ from $\extmlwe$, and
+  uniform if it sampled it uniformly at random.\end{lemma}
+\begin{proof}
+  Since the reduction only ever
+  sends $(\matA,\vecb')$ if none of the abort events (in particular,
+  $\mathbf{E.2}$) happen, we receive as our $\extmlwe$ hints the error
+  coefficients for every $b_{i,j} \in \setbad_{B,q,p}$.  Let
+  $\vecy=\vecb - \tilde{\vece} \in R_q^{w}$ (with $\tilde{\vece}$ as
+  defined above). 
+
+  In the case the oracle samples $\vecb=\matA^{t}\vecs+\vece$ from
+  $\extmlwe$, we have that every coefficient of every ring element is
+  either errorless or it is ``good'', meaning it is not in
+  $\setbad$. As a result, we have that
+\[\round{\vecy}_p=\round{\matA^{t}\vecs}_p,\]
+so, combining with Lemmas ~\ref{lem:boundE1} and
+~\ref{lem:abortequiv} , we have that it is distributed within distance
+$\epsilon/2$ of $\mlwr$.
+
+In the case the oracle samples $\vecb$ uniformly at random and
+independently, we have that $\tilde{\vecx}$ is independent of $\vecb$,
+and so $\vecy$ remains truly uniform, making $\round{\vecy}_p$ have
+the identical distribution to the ``uniform'' distribution.
+\end{proof}
+
+By Lemma~\ref{lem:round-correct} and our assumption on $\Adv$,
+conditioned on none of the abort events happening, $\Adv$ must succeed
+in distinguishing with advantage at least $\epsilon/2$.
+
+Combining this with Lemma~\ref{lem:abortequiv} gives
+
+\[\epsilon' \geq \frac{\epsilon/2(1-\epsilon/2)}{\binom{nw}{c}} \geq \epsilon(nw)^{-c}/4,\]
+as required.\medskip
+
+
+This completes the reduction's correctness proof.
+
+
+
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "latticereduction"
+%%% End: 

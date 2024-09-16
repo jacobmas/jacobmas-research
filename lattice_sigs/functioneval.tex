@@ -1,0 +1,149 @@
+\section{Efficient Evaluation of $g$ over Cyclotomic Rings}
+\label{sec:weak-prf-evaluation}
+
+In this section we describe how working over $R_q$ where $R$ the $m=2^{k}$th cyclotomic ring and $q=3^{\ell}$  allows us to
+efficiently evaluate the
+function $g(\vecz,(\vecy,b))=(1-z_{2-b})-\weakprf(\vecz,\vecy)$
+ for
+the specific case that $\weakprf$ is the $\lwr_{\tilde{n},\tilde{q},2}$
+function for $\tilde{n}=O(\lambda)$ and $\tilde{q}=m$. 
+
+
+
+
+\subsection{Encoding $\vecz$ and Computing the Linear Product}
+\label{sec:encoding-z-into}
+
+We encode each element $z_i$  of $\vecz \in
+\Z_{\tilde{q}}^{\tilde{n}}$ as the tag for the trapdoor function $a_i$ of the
+verification key
+as $t_i=\zeta_{m}^{z_i}$. Then, to evaluate $\inner{\vecz,\vecy}$ over a (publicly
+known) $\vecy \in \Z_{\tilde{q}}^{\tilde{n}}$, we simply use the
+asymmetric multiplication technique from
+Section~\ref{ref:concrete_inst} to homomorphically compute the product 
+$t^*=\prod_{i \in [\tilde{n}]} (\prod_{j=1}^{y_i} t_i)$. 
+As this product contains at most $\tilde{n}\tilde{q}$ terms, by
+Theorem~\ref{thm:asym-growth} we have that the new trapdoor $r^*$
+resulting from the homomorphic evaluation of the product will be such
+that $\tdfprop(r^*) \leq 2\sqrt{\tilde{n}\tilde{q}}\sqrt{n}\max(\tdfprop(r_i))$.
+
+
+\subsubsection{Further Noise Growth Reduction.}
+\label{sec:further-efficiency}
+
+To further reduce the noise growth in the context of $\lwr$ evaluation, instead of
+homomorphically computing just $t^*$ in this step, we can instead efficiently
+compute, separately, $c_{k}(t^*)^{k}$ for $k \in
+\{0,\ldots, m-1\}$ for an appropriate constant $c_{k}$. To do so, we
+still use the left-associative asymmetric
+multiplication technique, and compute the product as
+$(t^*)^k=\prod_{i \in [\tilde{n}]} (\prod_{j=1}^{(y_i * k)
+  \bmod{\tilde{q}}} t_i) \cdot c_{k}$. Each new trapdoor $(r^*)^{(k)}$ resulting from this
+homomorphic computation of $(t^*)^k$ will be such that $\tdfprop(r^*)
+\leq 2\sqrt{(\tilde{n}\tilde{q}+1)}\sqrt{n}\max(\tdfprop(r_i))$. 
+
+
+
+\subsection{Lagrange Interpolation over
+  $R_q$}\label{sec:lagr-interp-over}
+
+
+\subsubsection{Proofs of Feasibility and Homomorphic Cost.}
+\label{sec:proofs-feasibility}
+
+To evaluate the rounding part of the $\lwr_{\tilde{n},\tilde{q},2}$ function homomorphically,
+we will need to be able to evaluate a function over $R_q$ that sends $\zeta^i$ to
+$0$ when $i \in [-\tilde{q}/4,\tilde{q}/4)$, and sends $\zeta^i$ to $1$ otherwise.    
+
+If $R_q$ were a finite field, we could immediately do so with Lagrange
+interpolation. However, it is known that the $2^k$th cyclotomic polynomials are
+reducible modulo every prime. 
+While we could simply work over an embedded subfield $P^{\ell}$ of
+sufficiently high degree $\ell$, this would either limit our choice of
+rings or require a significant loss in parameters. Instead, we show
+that Lagrangian interpolation will work over the set of input points
+$\{\zeta_{m}^{i}\}_{i \in [m]}$ in $R_{q}$ as long as $q$
+and $m$ are coprime. 
+
+\begin{lemma}\label{lem:prod_stuff} $\prod_{i=1}^{m-1}(1-\zeta^i) = m$.
+\end{lemma}
+\begin{proof}
+We have that $X^{m}-1=(X-1)(X-\zeta)\ldots (X-\zeta^{m-1})$, so we
+have that $\sum_{i=1}^{m-1}(X-\zeta^{i}) = (X^{m}-1)/(X-1)=\sum_{i=0}^{m-1}X^{i}$. Evaluating this at $X=1$
+gives the required result.
+\end{proof}
+
+By multiplying each of the $m-1$ terms in the above product by
+$\zeta^{j}$, we get 
+\begin{corollary}\label{cor:invertibledenom}
+For any integer $j$,
+w, $\prod_{i \in [m], i \neq j}(\zeta^j-\zeta^i) = \zeta^{-j}m$.
+\end{corollary}
+
+As a result, as long as $m$ is invertible modulo $q$, the product of
+the differences will be invertible. For use in
+Section~\ref{sec:sig-short-pub}, we note that $\zeta^{j}$ itself is
+always invertible, which allows the use of $0$ as an input too. 
+As a result,  for any function $f: \{\{0\} \cup \{\zeta_m^{i}\} \in R_q: \in \Z\} \to
+\{0,1\}$, we can use Lagrange interpolation to compute any function taking
+roots of unity to $\{0,1\}$, including the one required to evaluate the
+rounding part of the $\lwr$ function.
+%  and can then make the coefficients of
+% the polynomial part of the public key, or even have the signing and
+% verification algorithms compute the interpolation polynomial on the fly if we
+% wish to have a smaller public key. 
+
+We now determine the cost of evaluating this polynomial homomorphically in terms of
+growth of the underlying trapdoors. Evaluating the polynomial 
+$f(X) = c_{m-1}X^{m-1}+\ldots +c_{1}X+c_0$ in general would involve
+first homomorphically evaluating each monomial via asymmetric
+multiplication of $m$ terms, and then homomorphically summing the
+results. By Theorem~\ref{thm:asym-growth}, we have that the resulting trapdoor
+$r^*$ will be such that $\tdfprop(r^*) \leq m\sqrt{n}\tdfprop(r)$, where $r$ is the
+trapdoor encoding the input value of $X$ to the polynomial. 
+
+Combining this all, we have the following lemma.
+
+\begin{lemma}\label{lem:lagrangefunc}Let $f: \{\zeta_m^{i} \in
+  R_q: i \in \Z\} \to \{0,1\} \in R_q$. 
+Then $f$ can be evaluated as a degree $m-1$ polynomial over $R_q$ and
+its coefficients
+can be efficiently computed. Furthermore, when
+homomorphically evaluated over a trapdoor function with trapdoor
+$r$, the trapdoor $r^*$ for the result will be such that $\tdfprop(r^*)
+\leq m\sqrt{n}\tdfprop(r)$. 
+\end{lemma}
+
+ 
+
+
+
+
+\subsubsection{Homomorphic Evaluation of the Rounding Function.}
+\label{sec:lwr-function}
+
+Using our idea from Section~\ref{sec:encoding-z-into}, we have a more
+efficient way of evaluating the rounding function. Given functions and
+trapdoors $a_k, r_k$ encoding $c_k(t^*)^k$ from above for $k \in
+\{0,\ldots,m-1\}$, evaluation will only require the homomorphic summation of the
+results, which gives that
+
+\begin{lemma}\label{lem:effevalcost}
+If each $r_i$ in the signing key is such that $\tdfprop(r_i) \leq
+\tilde{O}(\sqrt{n})$ and $\tilde{n}=O(n),\tilde{q}=m=2n$, then $g$ is admissible with parameter 
+$s=4\sqrt{\tilde{n}\tilde{q}}\sqrt{n}\tilde{O}(\sqrt{n}) =
+\tilde{O}(n^{2})$.
+
+Furthermore, by  Theorem~\ref{thm:phtdf}, we then have that the signature
+scheme in Section~\ref{sec:func-eval} is secure as long as
+$\lwr_{n,\tilde{q},2}$ is secure for
+$\tilde{n}=O(\lambda),\tilde{q}=m$, and  $\rsis$ is secure over the
+$m$th cyclotomic ring with parameter
+  $\beta=\tilde{O}(n^{9/2})$.
+\end{lemma}
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "newlattsigs"
+%%% End:

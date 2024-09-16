@@ -1,0 +1,24 @@
+The Learning with Rounding (LWR) problem was first introduced by Banerjee, Peikert, and Rosen (Eurocrypt 2012) as a \emph{derandomized}
+form of the standard Learning with Errors (LWE) problem. The original motivation of LWR was as a building block for constructing efficient,
+low-depth pseudorandom functions on lattices. It has since been used to construct reusable computational extractors, lossy trapdoor functions,
+and deterministic encryption. Meanwhile, the extended LWE problem was first introduced by O'Neill, Peikert and Waters (Crypto 2011) to formally capture leakage of linear functions of the error term, and has been used to achieve deniable encryption, circular security and functional encryption.
+
+
+Our main contribution in this work is a reduction from extended LWE to LWR over ``module lattices,'' as defined by Langlois and Stehl\'{e} (DCC 2015),
+which generalize both the general lattice setting of LWR and the ideal lattice setting of RLWR as the single notion M-LWR. We hope that taking this broader perspective
+will lead to further insights of independent interest. As a potential application of our reduction,  we show that the Kyber key encapsulation protocol speeds up by a factor of 10\% with no parameter losses when based on M-LWR instead of M-LWE.
+
+As a secondary contribution, we improve the previous reduction of Alperin-Sheriff and Peikert (PKC 2012) from LWE to extended LWE so that it works for all polynomial-sized moduli $q$. We also generalize the reduction of Brakerski et al. 
+(STOC 2013) to the case of module lattices, and provide a generalized definition of extended LWE in this context.
+
+Combining these results, we achieve the first dimension-preserving reductions from LWE to LWR in the case of arbitrary \emph{polynomial-size modulus}.
+Prior works either required a superpolynomial modulus $q$, or lost a multiplicative factor $\log(q)$ in the dimension of the reduction for moduli $q$ with small prime factors. A direct
+consequence of our improved reductions is an improvement in parameters (i.e. security and efficiency) for each of the known applications of LWR with bounded samples.
+
+
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "latticereduction"
+%%% End: 

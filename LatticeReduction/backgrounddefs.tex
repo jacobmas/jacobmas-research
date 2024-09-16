@@ -1,0 +1,109 @@
+\iflncs\section{Background and Definitions}
+\label{sec:backgr-defin}
+\fi
+
+
+\subsection{Full Algebraic Number Theory Background}
+\label{sec:algebr-numb-theory}
+
+
+
+\paragraph{Cyclotomic Fields and Rings.}
+For a positive integer $m$, the $m$th
+\emph{cyclotomic number field} is $K=\Q(\zeta_{m})$, where $\zeta_m$ is some fixed arbitrary primitive $m$th root of unity (for each $m$,
+we view it abstractly and not as any particular such root).  We denote
+the ring of integers of $K$ as $\O_{K} = \Z[\zeta_{m}]$, and refer to
+it as the $m$th cyclotomic ring. 
+
+A cyclotomic number field
+$K=\Q(\zeta)$ degree $n$ has exactly $n$ ring embeddings $\sigma_i: K
+\to \C$, which can be defined by $\sigma_i(\zeta)=\zeta_i$ for $i \in
+\Z_m^*$. The \emph{canonical embedding} is then defined as \[\sigma(x)
+= (\sigma_1(x), \ldots, \sigma_{m-1}(x)) \in \C^{n}.\] We also define
+the trace $\trace: K \to \Q$ and the (field) norm $N: K \to \Q$ as
+$\trace(x)=\sum \sigma_j(x)$, $N(x)=\prod_{j}\sigma_j(x)$, and recall
+that the trace is a ``universal'' $\Q$-linear function, in the sense
+that  any linear function $L: K \to \Q$ can be expressed as
+$L(a)=\trace(r\cdot a)$ for some fixed $r \in K$. 
+
+% The minimal polynomial of $\zeta_{m}$
+% over $\Q$ is the~$m$th \emph{cyclotomic polynomial}
+% $\Phi_{m}(X)=\prod_{i \in \Z_{m}^{*}} (X-\omega_{m}^{i}) \in \Z[X]$,
+% where $\omega_{m}=\exp(2\pi\sqrt{-1}/m) \in \C$ is the principal $m$th
+% complex root of unity, and the roots $\omega_{m}^{i} \in \C$ range
+% over all the \emph{primitive} complex $m$th roots of unity.
+% Therefore, $\O_{m}$ is a ring extension of degree $n=\varphi(m)$ over
+% $\Z$.  (In particular, $\O_{1}=\O_{2}=\Z$.)  Clearly, $\O_{m}$ is
+% isomorphic to the polynomial ring $\Z[X]/\Phi_{m}(X)$ by
+% identifying~$\zeta_{m}$ with~$X$, and has the ``power basis''
+% $\set{1,\zeta_{m}, \ldots, \zeta_{m}^{n-1}}$ as a $\Z$-basis. Note
+% that for $m\in \{1,2\}$, we have that $K=\Q$ and $R=\Z$.
+
+
+\paragraph{Ideals.}\label{par:ideals} An (integral) \emph{ideal} $I$ of $R$ is an
+additive subgroup of $R$ that is closed under multiplication by every
+element of $R$. We denote the smallest ideal of $R$ containing the set
+$S$ by $(S)$, and by $R/I$ the set of equivalence classes $x+I$ of $R$
+modulo $I$. The norm of a (nonzero) ideal is the number of elements in
+$R/I$.
+
+A \emph{prime ideal} $I \subseteq R$ is such that if $ab \in I$,
+then at least one of $a$ and $b$ is also in $I$. Over the ring of
+integers of any algebraic number field, any ideal of $R$ can be
+represented uniquely as a product of prime ideals.
+
+\paragraph{Factorization of Ideals.}\label{par:ideal-fact} Let $q=p^r \in \Z$ be a prime power.  In the $m$th cyclotomic ring
+$R=\O_{m} = \Z[\zeta_{m}]$ (which has degree $n=\varphi(m)$
+over~$\Z$), the ideal $pR$ factors into prime ideals as follows. First
+write $m = \bar{m}\cdot p^{k}$ where $p \nmid \bar{m}$. Let the
+ramification index 
+$e = \varphi(p^{k})$, and let the inertia degree~$d$ be the multiplicative order of $p$
+in $\Z_{\bar{m}}^{*}$. Note that $d$ divides $\varphi(\bar{m}) =
+n/e$.
+The ideal $qR$ then factors into the product of $(re)$th powers of
+$\varphi(\bar{m})/d = n/(de)$ distinct prime ideals $\frakp_{i}$, i.e.
+$qR=\prod \frakp_{i}^{re}$.  Each prime ideal $\frakp_{i}$ has norm
+$\abs{R/\frakp_{i}}=p^{d}$. The factorization of $qR$ for general
+$q=p_1^{r_1}\ldots p_t^{r_t}$ then follows by recalling the unique
+factorization of ideals for cyclotomic rings and that $qR=(p_1^{r_1}R)\ldots(p_t^{r_t}R)$.
+
+\subsection{Gaussian Measures}
+\label{sec:gaussian-measures}
+
+For $s > 0$, the $n$-dimensional Gaussian function $\rho_{s}$ is
+defined as \[\rho_s(\vecx) := \text{exp}(-\pi\length{\vecx}^2/s^2).\]
+
+Normalizing this function gives the \emph{continuous} Gaussian
+distribution $D_{s}$. More generally, we can define $D_{\matB}$ as the
+distribution of $\matB\vecx$ where $\vecx$ is sampled from $D_{1}$. For
+an invertible $\matB$, $D_{\matB}$ is proportional to
+$\text{exp}(-\pi\vecx^{t}\matB^{-t}\matB^{-1}\vecx)$. For any
+$\matB_1, \matB_2$, the sum of a sample from $D_{\matB_1}$ and
+$D_{\matB_2}$ is distributed as
+$D_{(\matB_1\matB_1^{t}+\matB_2\matB_2^{t})^{1/2}}$.
+
+For an $n$-dimensional lattice $\Lat$ and a vector $\vecu \in \R^{n}$,
+we define the \emph{discrete Gaussian distribution} $D_{\Lat+\vecu,s}$
+as the discrete distribution with support on the coset $\Lat+\vecu$
+whose probability mass function is proportional to $\rho_{s}$. 
+
+We require the following now standard facts about Gaussian distributions
+over lattices~\cite{DBLP:journals/siamcomp/MicciancioR07,DBLP:conf/stoc/GentryPV08,DBLP:conf/stoc/BrakerskiLPRS13}.
+\begin{lemma}\label{lem:latt-facts}
+Let $\lat$ be a lattice with associated basis $\matB$, and let
+$\length{\tilde{\matB}}$ denote the length of the longest vector in
+the Gram-Schmidt orthogonalization of $\matB$. Let $s \geq
+  \length{\tilde{\matB}}\sqrt{\ln(2n(1+1/\epsilon))/\pi}$ for some $0 <
+  \epsilon \leq 1/2$. Then 
+\begin{enumerate}
+\item There is a probabilistic polynomial-time algorithm that, given
+$\vecc \in \R^{n}$ outputs a sample distributed according to
+  $D_{\Lat+\vecc,s}$.
+\item The distribution of $\vecx \bmod{\Lat}$, where $\vecx \gets
+  D_{s}$, is within statistical distance $\epsilon/2$ of the uniform
+  distribution over cosets of $\Lat$. 
+\item Let $r > 0$. Then if we choose $\vecx \gets D_{r}$ and then
+  choose $\vecy \gets D_{\Lat-\vecx,s}$, we have that $\vecx+\vecy$ is
+  within statistical distance $8\epsilon$ of the discrete Gaussian $D_{\Lat,(r^2+s^2)^{1/2}}$.
+\end{enumerate}
+\end{lemma}

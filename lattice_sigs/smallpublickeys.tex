@@ -1,0 +1,206 @@
+\section{Signatures With Short Public Keys}
+\label{sec:sig-short-pub}
+In this section we describe our two
+lattice-based signature schemes with short public keys but non-tight
+reductions. As it turns out, the use of the PHTDF paradigm allows us
+to provide identical descriptions for both schemes in terms of the
+function $g$ to be homomorphically evaluated, freeing us to spend most
+of our exposition on the efficient evaluation of $g$. 
+
+\subsection{Generic Signature Scheme}
+\label{sec:sig-short-constructions}
+
+We follow the presentation of
+Alperin-Sheriff~\cite{DBLP:conf/pkc/Alperin-Sheriff15}. Scheme $b$ for
+$b \in \{1,2\}$ is parameterized by a security parameter
+$\lambda^{(b)}$ and a family of functions
+$\{g^{(b)}: \calT^{\kappa} \times \calT^{\ell}\} \in \calG$ admissible
+with parameter $s^{(b)}$.  Associated with each function $g^{(b)}$
+will be a vector of tags (fixed over the instantiation of the scheme)
+$\hat{T}^{(b)} = \hat{\vect}^{(b)} \in \calT^{\kappa}$ used
+in the actual scheme and an additional set of tags
+$\hat{T}^{(b)*} = \hat{\vect}^{(b)} \in \calT^{\kappa}$
+used in the security reduction.
+
+There will
+also be a vector of tags $T^{(b)} \gets D_{\calT^{\ell}}$ to be
+sampled. (see
+Section~\ref{sec:tag-inst} for details).  Finally, we set the index space $\calX =
+\{-1,0,1\}^{\bar{m}}$ and need a collision-resistant hash function
+$h: \{0,1\}^* \to \{0,1\}^{\bar{m}}$, to ensure that any $x^* \in
+\calX$ with a negative element is not a valid hash of any message.
+To avoid further clunkiness, we omit the $(b)$ superscripts in the description
+of the scheme below.
+
+\begin{description}
+\item[$\siggen(1^{\lambda})$:] Compute $pk \gets
+  \phtdf.\tdfgen(1^{\lambda})$, let $v \gets \calV$, $(a_i, r_i)
+  \gets \phtdf.\gentrap(pk,t_i)$ for $i \in [\kappa]$. Set $vk =
+  (pk,\veca, v)$, $sk = (\vecr)$.
+\item[$\sigsign(sk, x = h(\mu) \in \calX)$:] Sample $T \gets
+  \calD_{\calT^{\ell}}$, compute $r^* \gets \evaltd(g,
+  (\veca,\vecr),T)$, $a^* \gets \evalfunc(g,\veca,T)$.  Let $u \gets
+  \phtdf.\tdfinv_{r^*,pk,a^*,x,s}(v)$. Output $\sigma = (u,T)$. 
+\item[$\sigver(vk, x= h(\mu) \in X, \sigma = (u,T)$] Compute $a^* =
+  \evalfunc(g,\veca,T)$, and verify that $f_{pk,a^*,x}(u)=v$,
+  $\tdfprop(u) \leq s$. 
+\end{description}
+
+\subsection{Definition of $g$}
+\label{sec:tag-inst}
+
+
+\subsubsection{Sampled Tag Instantiation}
+\label{sec:tag-inst-real}
+
+In both schemes, each vector of sampled tags
+$T^{(j)} \in \calT^{\ell}$ will consist of length $\alpha(i)$th prefixes
+of a string $t = [t_0,\ldots, t_{\bar{}n-1}] \in \bit^{\bar{n}}$
+(where $n=\varphi(m)$, $\bar{n}=n/2$ is the degree of the $m$th
+cyclotomic polynomial), mapped to the ring element via
+\[t_{i}(X) = \sum_{j < \alpha(i)} t_jX^{j} \in R_q.\]  In both schemes,
+sampling a vector of tags according to $D_{T^{\ell}}$ will correspond
+to sampling $t \gets \bit^{\bar{n}}$ uniformly at random and then
+deriving the vector of tags as just described. The difference in the
+form of the vectors of tags in the two schemes lies entirely in the
+definition of $\alpha(i)$. In the Alperin-Sheriff scheme, which uses
+``confined guessing''~\cite{bohl2013confined}, $\alpha(i) = c^i$ for
+some constant $c > 1$, and we have $\ell = \ceil{\log_2{\bar{n}}}$
+(where if $2^\ell > n$, the $\ell$th prefix is just the full string).
+In the scheme of Miccancio and Peikert, which uses the ``prefix
+technique''~\cite{DBLP:conf/eurocrypt/HohenbergerW09}, we just have
+$\alpha(i)=i$, and we have $\ell=\bar{n}$.
+
+Note again that in both cases, the full vector of tags can be computed from
+the single bitstring $t \in \bit^{\bar{n}}$, so that the tag increases the
+size of the signatures over $u$ alone additively by an amount linear in the security
+parameter. 
+
+
+
+In both schemes, we will have $\kappa = \ell+1$ and the function $g: \calT^{\kappa} \times \calT^{\ell}
+\to \calT$ that we wish to evaluate over the
+(hidden) fixed vector of tags $\hat{T} = (\hat{t}_0, \ldots \hat{t}_{\kappa-1=\ell}) \in \calT^{\kappa}$ and the (public) sampled
+vector of tags $T = (t_1, \ldots, t_{\ell}) \in \calT^{\ell}$ can be defined as
+\[g(\hat{T}, T) : = t_0 + \sum_{i \in [\ell]}\hat{t}_i\]
+
+
+
+\subsection{Conditions on $g$ For Security}
+\label{sec:cond-g-secu}
+
+We recall the conditions that $g$ must satisfy in order for the
+security proofs in~\cite{DBLP:conf/pkc/Alperin-Sheriff15} and
+~\cite{DBLP:conf/eurocrypt/MicciancioP12} to go through, and briefly,
+how those conditions are satisfied, referring readers to each of those
+works for more details and for full security proofs.
+
+As with the scheme in Section~\ref{sec:func-eval}, in both schemes we will set $\calT$
+equal to $R_q$ for a cyclotomic ring $R = \calO_{m}$, where
+$m=2^{k}$. However, here we need it to be the case, as in the earlier
+work of Ducas and Micciancio  that the modulus $q=p^t$ for some prime $p$ such that the
+$m$th cyclotomic polynomial (of degree $n=\varphi(m)$) factors modulo $p$ into
+polynomials of degree as high as possible, namely $\bar{n}=n/2$, which will be
+the case when $p=3$. For further details
+on how cyclotomic polynomials factor over a finite field,
+consult, e.g.~\cite[Theorem 2.47]{FiniteFieldsIntro}.
+
+
+In both schemes, we need $g: \calT^{\kappa} \times \calT^{\ell} \to
+\calT$ to fulfill certain properties when it is homomorphically evaluated $Q$ times (corresponding to
+$Q$ signature queries) on the fixed set of tags $\hat{T}$ and on each
+sampled set of tags $\calT \gets D_{T^{\ell}}$.
+
+For both actual schemes, $g(\hat{T},T_i)$ must always be an invertible
+element of $\calT$ for each of the $Q$ queries.
+In addition, for any given $\hat{T}$, it should be possible to find in
+polynomial time some $\bar{T}$ such that $g(\hat{T},\bar{T})=0$. 
+
+The conditions for the security reductions in both schemes are quite
+similar as well. We need that with non-negligible
+probabilities, given the $Q$ vectors of tags $T_i$ sampled
+to create signatures, we can find in
+  polynomial time a $\hat{T}$ such that
+\begin{enumerate}
+\item \begin{description}
+\item[Scheme 1:] except for at most one $i$, we have that
+  $g(\hat{T}, T_i)$ is invertible. 
+\item[Scheme 2:] for \emph{all} $i$, we have that $g(\hat{T}, T_i)$ is
+  invertible.
+\end{description}
+\item The tag $T^*$ chosen by the adversary for his forgery is such
+  that $g(\hat{T}, T^*)=0$.
+\end{enumerate}
+
+We also briefly recall (see~\cite{DBLP:conf/eurocrypt/MicciancioP12}
+and~\cite{DBLP:conf/pkc/Alperin-Sheriff15} for details) the
+probabilities of fulfilling the above security conditions. In the
+Micciancio-Peikert scheme, using the ``prefix
+technique''~\cite{DBLP:conf/eurocrypt/HohenbergerW09} therein,
+condition 1 is fulfilled with probability $\epsilon_1=1$ and condition
+2 is fulfilled with probability $\epsilon_2=1/((\ell-1)*(Q+1))$. In
+the Alperin-Sheriff scheme, using the ``confined guessing'' technique~\cite{bohl2013confined}
+against an adversary with success probability $\delta$ and making $Q$
+queries, condition $1$ will be fulfilled with probability at least
+$\epsilon_1=1-\delta/2$, while condition $2$ is fulfilled with
+probability at least $\epsilon_2=(\delta/(4Q^2))^c$, where $c>1$ is the constant defined in Section~\ref{sec:tag-inst}.
+
+
+
+
+\subsection{Ring-Based Instantiations of $g$}
+\label{sec:ring-based-inst-1}
+
+In each of these schemes, the function $g$ that is being evaluated
+homomorphically over tags in the verification key is linear over $\ell+1$
+tags $\hat{T}=(\hat{t}_0,\hat{t}_1, \ldots, \hat{t}_{\ell})$. Specifically, letting $T= (t_1, \ldots t_{\ell})
+\gets D_{\calT^{\ell}}$ be the tags sampled for a given signature, the
+function $g$ was 
+$g(\hat{T},T) := \hat{t}_0 + \sum_{i \in [\ell]}\hat{t}_i\cdot t_i$.
+
+In each of the actual schemes, they set $\hat{t}_0 = 1, \hat{t}_i = 0$
+for $i \in [\ell]$, which ensured that all messages could be
+successfully signed. In the security reduction,  letting
+$t^*_{\leq i^*}$ be the prefix of length $i^*$ of the tag which
+they hoped the adversary would use in their forged signature, they set
+$\hat{t}_0 = -t_{\leq i^*}^*$, $\hat{t}_i = 1$ for $1 \leq 1 \leq i^*$
+and $\hat{t}_i=0$ for $i^* < i \leq \ell$.  
+
+Using our Lagrange interpolation technique, we can limit the
+verification key to two trapdoor functions $a_0$ and $a_1$, such that
+$\hat{t}_0=1$, $\hat{t}_1=0$ in the actual scheme, and such that
+$\hat{t}_0 = -t_{\leq i^*}^* \in R_q$ (as in the original schemes) and
+such that $\hat{t}_1 = \zeta_{m}^{i^*} \in R_q$.  We have that
+$\hat{t}_1$ will either be a power of
+$\zeta^{m}$ (in the security reduction) or $0$ (in the actual
+scheme). By Lemma~\ref{lem:lagrangefunc}, the $\hat{t}_i$ that
+we want to homomorphically compute to reduce the rest of the
+computation to a mere homomorphic summation can be computed entirely
+from the tag encoded in $a_1$. In particular, for the associated
+trapdoors $r^*_i$, we will have that
+$\tdfprop(r_i^*) \leq \sqrt{\ell} \sqrt{n}\tdfprop(r)$. Thus, summing
+$(\ell+1)$ elements, the trapdoor $\tilde{r}$ of the final output
+trapdoor function from evaluating $g(\hat{T},T)$ homomorphically will
+be such that
+$\tdfprop(\tilde{r})\leq \sqrt{(\ell+1)\ell} \sqrt{n}
+\tdfprop(r)$. This leads to the following lemma.
+
+\begin{lemma}\label{lem:effvalcosting}
+If each $r_i$ in the signing key is such that $\tdfprop(r_i) \leq
+\tilde{O}(\sqrt{n})$ and $\tilde{n}=O(n),\tilde{q}=m=2n$, then $g$ is admissible with parameter 
+$s=\sqrt{(\ell+1)\ell}\sqrt{n}\tilde{O}(\sqrt{n})$. 
+
+Furthermore, by  Theorem~\ref{thm:phtdf}, we then have that the
+improved version of the Micciancio-Peikert signature scheme is secure as long as
+$\rsis$ is secure over the
+$m$th cyclotomic ring with parameter
+  $\beta=\tilde{O}(n^{9/2})$ and the improved version of the
+  Alperin-Sheriff signature scheme is secure as long as $\rsis$ is
+  secure over the $m$th cyclotomic ring with parameter $\beta = \tilde{O}(n^{5/2})$.
+\end{lemma}
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "newlattsigs"
+%%% End:

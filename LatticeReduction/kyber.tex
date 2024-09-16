@@ -1,0 +1,166 @@
+
+\section{Application: Modified-Kyber Implementation}
+\label{sec:modif-kyber-inst}
+
+\subsection{A Brief Overview of Kyber}
+\label{sec:kyber-intro}
+
+Kyber~\cite{DBLP:journals/iacr/BosDKLLSSS17} is a portfolio of
+post-quantum cryptographic primitives based on the hardness of
+Module-LWE, which is being submitted to the National Institute of
+Standards and Technology (NIST) for their post-quantum standardization
+process. The Kyber algorithms begin with a IND-CPA-secure public key encryption scheme (PKE), which is transformed into a IND-CCA-secure key-encapsulation mechanism (KEM) via the Fujisaki-Okamoto method. In turn, this ``core'' KEM is leveraged in a black-box manner to construct CCA-secure encryption, key exchange, and authenticated-key-exchange schemes. Concrete parameters are chosen to target more than 128 bits of post-quantum security.
+
+\subsection{Modified-Kyber Definition}
+\label{sec:modif-kyber-defin}
+
+\paragraph{IND-CPA-Secure Encryption.} Let $k$, $d_t$, $d_u$, $d_v$ be positive integers, $n=256$, and let $\calM = \bit^{256}$ be the message space, with each as in the original Kyber. We define a modified version of the IND-CPA-secure encryption part of Kyber as:
+
+\iflncs
+\begin{table}[!h]
+\begin{tabular}{|l|l|l|}
+\hline
+$\textbf{KeyGen}()$&$\textbf{Enc}(pk = (\vec{t}, \rho), m \in
+                   \calM)$&$\textbf{Dec}(sk = \vec{s}, c = (\vec{u},
+                            v))$\\
+\hline
+$\rho, \sigma \gets \bit^{256}$&$r \gets \bit^{256}$ &$\vec{u}
+                                                            :=
+                                                            Decomp_q(\vec{u},
+                                                            d_u)$\\
+${\bf A} \sim R_q^{k\times k} := Sam(\rho)$&$\vec{t} :=
+                                             Decomp_q(\vec{t},
+                                             d_t)$&$v :=
+                                                    Decomp_q(v,
+                                                    d_v)$\\
+$\vec{s} \sim \beta^k_\eta := Sam(\sigma)$&${\bf A} \sim R_q^{k\times
+                                            k} := Sam(\rho)$& {\bf
+                                                              return}
+                                                              $Comp_q(v-\vec{s}^T\vec{u},
+                                                              1)$\\
+$\vec{t} := Comp_q({\bf A}\vec{s}, d_t)$&$\vec{r} \sim
+                                              \beta^k_\eta :=
+                                              Sam(r)$&\\
+{\bf return} &$\vec{u} :=
+                                                       Comp_q({\bf
+                                                       A}^T\vec{r},
+                                                       d_u)$&\\
+  $(pk := (\vec{t}, \rho), sk := \vec{s})$&$\vec{v} := Comp_q(\vec{t}^T\vec{r} +
+  \lceil\frac{q}{2}\rfloor\cdot m, d_v)$&\\
+&{\bf return} $c := (\vec{u}, v)$&\\
+\hline
+\end{tabular}
+\end{table}
+
+\else
+
+\begin{description}
+\item[KeyGen():]
+\begin{description}
+\item 
+\item[1:] $\rho, \sigma \gets \bit^{256}$
+\item[2:] ${\bf A} \sim R_q^{k\times k} := Sam(\rho)$
+\item[3:] $\vec{s} \sim \beta^k_\eta := Sam(\sigma)$
+\item[4:] $\vec{t} := Compress_q({\bf A}\vec{s}, d_t)$
+\item[5:] {\bf return} $(pk := (\vec{t}, \rho), sk := \vec{s})$
+\end{description}
+
+\item
+\item[Enc($pk = (\vec{t}, \rho), m \in \calM$):]
+\begin{description}
+\item 
+\item[1:] $r \gets \bit^{256}$
+\item[2:] $\vec{t} := Decompress_q(\vec{t}, d_t)$
+\item[3:] ${\bf A} \sim R_q^{k\times k} := Sam(\rho)$
+\item[4:] $\vec{r} \sim \beta^k_\eta := Sam(r)$
+\item[5:] $\vec{u} := Compress_q({\bf A}^T\vec{r}, d_u)$
+\item[6:] $\vec{v} := Compress_q(\vec{t}^T\vec{r} + \lceil\frac{q}{2}\rfloor\cdot m, d_v)$
+\item[7:] {\bf return} $c := (\vec{u}, v)$
+\end{description}
+
+\item
+\item[Dec($sk = \vec{s}, c = (\vec{u}, v)$):]
+\begin{description}
+\item 
+\item[1:] $\vec{u} := Decompress_q(\vec{u}, d_u)$
+\item[2:] $v := Decompress_q(v, d_v)$
+\item[3:] {\bf return} $Compress_q(v-\vec{s}^T\vec{u}, 1)$
+\end{description}
+\end{description}
+
+\fi
+
+We note that we have modified the original Kyber CPA-secure encryption subroutines at line 3 of KeyGen() and lines 4-6 of Enc(). In each case, we removed the sampling (and use) of the
+error terms (denoted by $\vec{e}, \vec{e}_1, e_2$ in the original
+Kyber), instead relying on a deterministic rounding procedure as
+indicated by the $Compress_q$ algorithm. Concretely, this algorithm
+discards the low-order bits of the public key and ciphertext
+respectively. (We remark as a note of independent interest that this
+algorithm was already defined in the original Kyber.) Security of the
+Modified-Kyber CPA-secure encryption scheme follows from our preceding
+results on the hardness of $\lwr$ over Module Lattices combined with
+the security of the original Kyber CPA-secure encryption scheme. \iflncs
+As it is left unchanged, we defer a description of of the full
+CCA-secure KEM to the full version.
+\else
+
+\paragraph{IND-CCA-Secure KEM.} As mentioned above, the ``core component'' of Kyber is the CCA-secure KEM primitive from which CCA-secure encryption, key exchange, and authenticated-key-exchange schemes can be derived in a black-box manner. While we have not made any changes to the Kyber KEM scheme directly, we perform our experimental evaluations on this ``core'' KEM scheme, but leveraging our modified CPA-secure encryption scheme. Therefore, we include a description of the (Modified-)Kyber KEM for completeness.
+
+Let $G: \bit^* \to \bit^{3\times 256}$ and $H: \bit^* \to \bit^{256}$ be hash functions. The $Setup()$ algorithm is the same as the above, except $sk$ also contains $pk$ as well as a secret $256$-bit random value $z$. The encapsulation and decapsulation algorithms for the ``core'' CCA-secure KEM part of Kyber are:
+
+\begin{description}
+\item[Encaps($pk = (\vec{t}, \rho)$):]
+\begin{description}
+\item 
+\item[1:] $m \gets \bit^{256}$
+\item[2:] $(\hat{K}, r, d) := G(pk, m)$
+\item[3:] $(\vec{u}, v) := Modified\text{-}Kyber.CPA.Enc((\vec{t}, \rho), m; r)$
+\item[4:] $c := (\vec{u}, v, d)$
+\item[5:] $K := H(\hat{K}, c)$
+\item[6:] {\bf return} $(c, K)$
+\end{description}
+
+\item
+\item[Decaps($sk = (\vec{s}, z, \vec{t}, \rho), c = (\vec{u}, v, d)$):]
+\begin{description}
+\item 
+\item[1:] $m' := Modified\text{-}Kyber.CPA.Dec(\vec{s}, (\vec{u}, v))$
+\item[2:] $(\hat{K}', r', d') := G(pk, m')$
+\item[3:] $(\vec{u}', v') := Modified\text{-}Kyber.CPA.Enc((\vec{t}, \rho), m'; r')$
+\item[4:] {\bf if} $(\vec{u}', v', d') = (\vec{u}, v, d)$ {\bf then}
+\item[5:] \qquad {\bf return} $K := H(\hat{K}', c)$
+\item[6:] {\bf else}
+\item[7:] \qquad {\bf return} $K := H(z, c)$
+\item[8:] {\bf end if}
+\end{description}
+\end{description}
+\fi
+\subsection{Experimental Evaluation}
+\label{sec:modif-kyber-expt}
+
+We have made a reference implementation of the Modified-Kyber CCA-secure KEM scheme in order to evaluate the practical impact on efficiency. Our tests were performed using a single core on a machine with an Intel Core i7 2.8GHz CPU with 16GB 1600MHz DDR3 RAM. We forked our code from the publicly available implementation of Kyber, written in C and found at \url{https://github.com/pq-crystals/kyber}. The full source code of our Modified-Kyber implementation, per the description above, is available at \url{https://github.com/jacobmas/kyber}.
+
+For our experiments, we ran the six algorithms in Kyber.CCA.KEM = (Setup, Encaps, Decaps), relying on Module-LWE, and in Modified-Kyber.CCA.KEM = (Setup, Encaps, Decaps), relying on Module-LWR, 10,000 times each. We computed the median and average of the number of CPU cycles required to run each algorithm. These values made be found in Table~\ref{tab:kyber}.
+
+\begin{table}[!hb]
+\begin{center}
+\begin{tabular}{ c | c  c  c | c  c  c }
+\hline
+ & \,\,\, Ky.KG & \,\,\, Ky.Enc & \,\,\, Ky.Dec \,\,\, & \,\,\, ModKy.KG & \,\,\, ModKy.Enc & \,\,\, ModKy.Dec \\
+\hline
+Median\,\,\, & \,\,\,\,\,199 841 & \,\,\, 246 136 & \,\,\, 271 734 \,\,\, & \,\,\, 181 265 & \,\,\, 221 074 & \,\,\, 251 366 \\
+Average\,\,\, & \,\,\, 213 474 & \,\,\, 268 964 & \,\,\, 292 418 \,\,\, & \,\,\, 195 040 & \,\,\, 238 354 & \,\,\, 267 758 \\
+\hline
+\end{tabular}
+\end{center}
+\caption{{\bf Cycle-Count Comparison for Kyber and Modified-Kyber.} ``Ky'' denotes Kyber and ``ModKy'' denotes Modified-Kyber. ``KG'' is KeyGen, ``Enc'' is Encaps, and ``Dec'' is Decaps. The raw values are given in numbers of CPU cycles.}\label{tab:kyber}
+\end{table}
+
+We note that the sizes (in bytes) of the public key, secret key, and ciphertext generated by Kyber and Modified-Kyber are identical; hence, we do not report those values here. We also note that both of our Kyber and Modified-Kyber experiments were performed using the ``C Reference'' version of the code, rather than the ``AXW2 optimized'' code. The reason for this is that machine-code level optimizations both {\bf (i)} have a very large impact on the exact cycle counts (up to 3-4x speed-up, for example), and {\bf (ii)} may be performed in a more efficient manner than the original Kyber optimizations, depending on a variety of factors.
+
+As anticipated, we experimentally observe a clear speed-up, approximately calculated as a 10\%  decrease in the required number of clock cycles, when using our Modified-Kyber algorithms over the original Kyber scheme. This efficiency gain is due to the fact that Modified-Kyber does not need to sample error terms (instead relying on the $Compress$ subroutine to drop the corresponding number of lower-order bits). Even so, the size of the modified keys and ciphertexts, as well as the concrete security, of the resulting scheme is not adversely impacted.
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "latticereduction"
+%%% End:

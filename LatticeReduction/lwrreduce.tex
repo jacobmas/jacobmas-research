@@ -1,0 +1,85 @@
+\newif\iflncs\lncsfalse
+
+\documentclass[letterpaper,11pt]{article}
+\usepackage{times}
+\usepackage{fullpage}
+\usepackage{hyperref,microtype}
+\usepackage{amsmath,amsfonts,amssymb}
+% mathabx overrides many math fonts with ugly ones; instead, add
+% individual commands in head.tex (see declaration of \boxplus etc.)
+%\usepackage{mathabx}
+\usepackage[amsmath,amsthm,thmmarks,hyperref]{ntheorem}
+\usepackage{algorithm,algpseudocode,eqparbox}
+
+%\usepackage{algorithmicx}
+\usepackage{float}
+\usepackage{mathtools}
+\usepackage{url}
+\usepackage{xspace}
+\usepackage{enumitem}
+
+% show equation numbers only for referenced equations
+%\mathtoolsset{showonlyrefs}
+
+\newif\iffull\fulltrue
+
+\input{head}
+\input{paperhead}
+
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+\renewcommand\algorithmiccomment[1]{%
+  \hfill//\ \eqparbox{COMMENT}{#1}%
+}
+ \algnewcommand{\algright}[2]{%
+ \hskip #1 #2%
+ }
+
+\DeclareMathOperator{\lcm}{lcm}
+
+%%%%
+
+\title{Dimension-Preserving Reductions from LWE to LWR}
+
+\author{%
+  Jacob Alperin-Sheriff\footnote{University of Maryland,
+    \texttt{jacobmas@umd.edu}}
+%
+\and Daniel Apon\footnote{University of Maryland,\texttt{dapon@umd.edu}}
+}
+
+ 
+
+\begin{document}
+ % \floatstyle{boxed}
+ % \restylefloat{figure}
+
+\maketitle
+\thispagestyle{empty}
+\begin{abstract}
+  \noteswarning
+  
+\input{abstract}
+\end{abstract}
+
+% \paragraph{Keywords.} fully homomorphic encryption, bootstrapping,
+% lattice-based cryptography
+
+\clearpage
+\pagenumbering{arabic} 
+
+\input{intro}
+
+\input{prelims}
+
+\input{lwetolwr}
+
+\bibliographystyle{alphaabbrvprelim}
+\bibliography{lattices,crypto,ibe,fhe}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

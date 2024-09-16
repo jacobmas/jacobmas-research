@@ -1,0 +1,104 @@
+\newif\iflncs\lncstrue
+\documentclass[oribibl,envcountsect,envcountsame]{llncs}
+%\usepackage{times}        // Not Allowed for TCC ---Daniel
+%\usepackage{fullpage}    // Not Allowed for TCC submission ---Daniel
+\usepackage{microtype}
+\usepackage{amsmath,amsfonts,amssymb}
+%\usepackage{hyperref}
+% mathabx overrides many math fonts with ugly ones; instead, add
+% individual commands in head.tex (see declaration of \boxplus etc.)
+%\usepackage{mathabx}
+%\usepackage[amsmath,amsthm,thmmarks,hyperref]{ntheorem}
+
+
+
+\usepackage{float}
+\usepackage{mathtools}
+\usepackage{url}
+\usepackage{xspace}
+\usepackage{enumitem}
+
+% show equation numbers only for referenced equations
+%\mathtoolsset{showonlyrefs}
+
+\newif\iffull\fulltrue
+\newcommand{\shiftright}{\gg}
+
+\input{head/head}
+%\input{paperhead}
+
+
+\newcommand{\Lat}{\Lambda}
+
+\newcommand{\setbad}{\textsf{BAD}}
+\newcommand{\setguesses}{\textsf{GUESSES}}
+
+
+\usepackage{xcolor}
+\newcommand{\daniel}[1]{Daniel: #1}
+\newcommand{\todo}[1]{TO-DO: #1}
+
+\pagestyle{plain}
+
+
+%%%%
+
+\title{FHE Improvement Thoughts}
+
+\author{%
+  Jacob Alperin-Sheriff
+}
+\institute{NIST
+  \email{jacob.alperin-sheriff@nist.gov}
+}
+
+\begin{document}
+ % \floatstyle{boxed}
+ % \restylefloat{figure}
+
+\maketitle
+\thispagestyle{plain}
+%\begin{abstract}
+%  
+%  
+%\input{abstract}
+
+
+%\end{abstract}
+
+% \paragraph{Keywords.} fully homomorphic encryption, bootstrapping,
+% lattice-based cryptography
+
+%\clearpage
+%\pagenumbering{arabic} 
+
+Miccancio and Peikert's work~\cite{DBLP:conf/eurocrypt/MicciancioP12}
+does not explicitly describe how to sample $\lamperp_{u}(\vecg^{t})_{s,\vecc}$
+at centers other than $\veczero$. While this can be accomplished by
+using the generic basis sampling algorithms described
+in~\cite{DBLP:conf/stoc/GentryPV08}, there is a more efficient method
+which proceeds as follows:
+\begin{enumerate}
+\item Compute $u' = \inner{\vecg,\vecc}$. 
+\item Sample $\vecv' \gets \lamperp_{u-u'}(\vecg^{t})_{s}$ (using the
+  specialized $\vecg^t$ algorithms)
+\item Output $\vecv=\vecv'+\vecc$. 
+\end{enumerate}
+
+\jnote{Better: explicit decoding to the closest one should be possible
+  with $\matG$}
+
+\input{mainidea}
+
+
+
+\bibliographystyle{alpha}
+\bibliography{bib/lattices,bib/crypto,bib/ibe,bib/fhe,bib/numtheory}
+
+\end{document}
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

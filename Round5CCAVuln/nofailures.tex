@@ -1,0 +1,127 @@
+\section{CCA Attacks Without Decryption Failure}
+\label{sec:cca-no-failure}
+
+\subsection{Generic Scheme}
+\label{sec:gen-scheme}
+Consider a generic (ring)-LWE style FO KEM where $D$ is some distribution
+for the secrets 
+\jnote{TODO: fix details}
+\begin{description}
+\item[Gen($1^{\kappa}$)] 
+\begin{enumerate}
+\item $\sigma \gets 1^{\kappa}$
+\item Choose uniform $a$, short $s \gets D_{s}^{(\sigma)}, e \gets D_{e}^{(\sigma)}$.
+\item Output $pk=(a, b=s\cdot a + e \pmod{q}), sk=(s,e$. 
+\smallskip
+\end{enumerate}
+\item[Enc($pk=(a,b),\mu$)] 
+\begin{enumerate}
+\item Choose short $r \gets D^{(\mu)}_{r}, e' \gets D^{(\mu)}_{e'}, e'' \gets D^{(\mu)}_{e''}$
+  (distribution using ``randomness'' from $\mu$)
+\item output $ct=(u=ar+e' \pmod{q},v=br+e'' +\tfrac{q}{2}\mu\pmod{q})$
+\end{enumerate}
+\smallskip
+\item[Dec($ct=(u,v),sk=(s),pk=(a,b)$)] 
+\begin{enumerate}
+\item Compute $\mu'=\round{v-s\cdot u\pmod{q}}_{q/2}$
+\smallskip
+\item Compute $ct'\gets\text{Enc}(pk,\mu')$.
+\smallskip
+\item If $ct'=ct$ then output $\mu'$.
+\smallskip
+\item Else output $\bot$. 
+\end{enumerate}
+\end{description}
+
+\paragraph{Correctness.}
+
+\begin{lemma}Let $ct=(u,v) \gets \pkcenc(pk,\mu)$ be an honestly generated
+ciphertext. Then $\mu=\pkcdec(ct,sk,pk)$ if and only if for each
+coefficient of 
+\[e^*=e''+e\cdot r - s\cdot e'\] has absolute value in
+$[-q/4,q/4)$. \jnote{or whatever depending on rounding range}
+\end{lemma}
+
+\begin{proof}Obvious
+\end{proof}
+
+\subsection{Blyat-Type Conjecture}
+\label{sec:blyat-type-conj}
+
+\begin{conjecture}
+Let $(pk=(a,b),sk=(s,e)) \gets \pkcgen(1^{\kappa})$ 
+
+
+Let $(r,e',e'') \gets D^{(\mu)}_{r} \times D^{(\mu)}_{e'} \times
+D^{(\mu}_{e''}$ such that there exists $\tilde{\sigma} \in 1^{\kappa}$ (not
+the sigma used to generate the actual secret key) such
+that, letting
+$(\tilde{s},\tilde{e}) \gets D^{(\tilde{\sigma})}_{s} \times
+D^{(\tilde{\sigma})}_{e}$, we have that the absolute value of at least one coefficient of 
+\[\tilde{e}^*=e''+\tilde{e}\cdot r - \tilde{s}\cdot e' \bmod{q}\] is
+in the range $[q/4,3q/4)$. 
+
+Then if a CCA oracle query on $ct=\pkcenc(pk,\mu)$ decrypts
+successfully, useful information is learned/leaked about the actual
+secret $(s,e)$. 
+\end{conjecture}
+
+
+\paragraph{Insight on why this might be plausibly true}
+\jnote{Might be better to write it over the integers and reals instead
+  so we can do lemmas and bounds and stuff IDK and then pretend they
+  apply or who knows what}
+
+Slightly more clearly, consider that this procedure is repeated with many ``good''
+messages $\mu_{1}, \ldots, \mu_{t}$, meaning messages such that the 
+\[\vecv_{i}=(r_{i},e'_{i},e''_{i}) \gets D^{(\mu_{i})}_{r} \times
+  D^{(\mu_{i})}_{e'} \times D^{(\mu_{i}}_{e''} \]
+ generated are large enough to cause
+decryption failures on at least some valid secret keys and error, but
+do not cause decryption failures when the CCA oracle is queried on
+$ct_{i}=\pkcenc(pk,\mu_{i})$. 
+
+Let $\vecs=(-s,e,1) \in R^{3}$, and let 
+\[\matV=[\vecv_{1},\ldots, \vecv_{t}] \in R^{3 \times t}\]
+
+Then we know that over the reals [not modulo anything], we have that 
+
+\[\vecs^{t}\matV=\vecw^{t} \in R^{t} \]
+where for each coefficient $w_i$ of $\vecw$, we have $\abs{w_i}<q/4$
+
+\jnote{or whatever depending on rounding up/down/etc}
+
+
+Let $\matV^{+} \in K^{t \times 3}$ be the right-inverse of
+$\matV$. Then 
+
+\[\vecs^{t}=\vecw^{t}\matV^{+} \in R^{3}\]
+
+To do some bounds and such, we can instead view $\matV^{+} \in \R^{tn
+  \times 3n}$, $\vecw^{t} \in \R^{tn}$ and 
+\[\vecs^{t}=\vecw^{t}\matV^{+} \in \R^{3n}\]
+
+At this point we can apply some bounds from Vershynin
+maybe by having rejection sampled into a less cyka
+distribution?By ~\cite[Theorem 5.58]{DBLP:books/cu/12/VershyninEK12}
+we have under random oracle assumption that with probability at least
+$1-2\exp(-cs^2)$,  assuming 
+
+\[r(\sqrt{tn}-C\sqrt{3n}-s) \leq \text{s}_{1}(\matV) \leq
+  r(\text{s}_{3n}(\matV) \leq \sqrt{tn}+C\sqrt{3n}+s)\]
+
+where $r$ is the parameter with respect to which the distribution is
+subgaussian, and assuming the norm of each column is $r\sqrt{N}$
+almost surely (so that may screw things up)
+
+
+
+
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "round5vuln"
+%%% End: 
+
+

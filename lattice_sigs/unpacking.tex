@@ -1,0 +1,107 @@
+\section{Unpacking Packed Ciphertexts for Homomorphic Operations}
+\label{sec:unpacking}
+
+Smart and Vercauteren~\cite{cryptoeprint:2011:133}\todo{before?} were the first to
+show SIMD operations etc. etc. 
+
+\subsection{How to Unpack}
+\label{sec:how-unpack}
+
+
+We choose the $m$th cyclotomic field $K$ and ring $R=\O_m$ for some odd $m$ such that
+$2$ generates all of $\Z_m^*$ (i.e. the order of $2$ modulo $m$ is
+$\varphi(m)$), which then implies that the $m$th cyclotomic polynomial
+$\Phi(m)$ is irreducible modulo $2$, meaning that for any $q'=2^k$,
+$R_q'$ contains a subring isomorphic to $\F_{2^m}$. Note that this is
+the case for, e.g. $m=3^{t}$ and $5^{u}$. 
+
+
+For our initial modulus $q$, we want the $m$th cyclotomic polynomial
+to split as finely as possible. The $m$th cyclotomic polynomial splits
+completely whenever $q$ is prime and $q=1 \bmod{m}$. 
+
+
+Note that $q$ does not have to be particularly large. Dirichlet's Theorem tells us that the we would expect a $q$ of
+size at most $m\log{m}$ such that $q =1 \bmod{m}$ for any given
+$m$. For a concrete upper bound on $q$, we have that under the Generalized Riemann
+Hypothesis, $q \leq \varphi(m)^2\log^2{m}$ for large enough
+$m$~\cite{heathbrownleastprime}.
+
+
+
+For signatures, the initial public key is
+
+\[\matA \in R_{q}^{1 \times \ell}, \matB=\matA\matR+s\matG \in R_q^{1 \times \ell}\]
+
+where $s \in R_q$ encodes the (bits of the) PRF secret key in terms of a ``CRT basis'',
+e.g. $C=\{c_i\}_{i \in \varphi(m)}$ where $c_i = 1 \pmod{\frak{p}_i}, c_i=0
+\pmod{\frak{p}_j}$ for $i \neq j$.
+(see, e.g.~\cite{DBLP:conf/eurocrypt/LyubashevskyPR13} for more
+information on CRT basis). 
+
+Concretely, letting $n = \varphi(m)$, we have
+
+\[s = b_1c_1 + \ldots + b_{n}c_{n}\]
+
+
+Let $q' = 2^{\floor{\log_2{q}}}$ be the largest power of $2$ less than
+or equal to $q$.
+
+
+\subsubsection{Isolating the $i$th Bit.}
+\label{sec:isolating-ith-bit}
+
+To ``unpack'' the $i$th bit, we begin by isolating the $i$th bit. To
+do so, we simply do a homomorphic multiplication by the constant
+ciphertext $c_{i}\matG$.
+
+We simply compute
+
+\[\matB_i = \matB\matG^{-1}(c_{i}\matG) =
+  \matA\matR\matG^{-1}(c_{i}\matG) + b_ic_i\matG \in R_q^{1 \times \ell}\]
+
+and our new trapdoor $\matR_i = \matR\matG^{-1}(c_{i}\matG)$. Note
+that (over $R$ itself, not modulo anything) we have that 
+
+\[\matA\matR_i - \matB_i = b_ic_i\matG + q\matX,\]
+
+for some $\matX \in R^{1 \times \ell}$. 
+
+\subsubsection{Modulus-Switching.}
+\label{sec:modulus-switching}
+
+As \todo{to be done} mentioned in the introduction, the heart of the
+procedure is the modulus-switching step, as it enables us.
+
+
+We compute $\matA' = \round{\tfrac{q'}{q}\matA} \in R_{q'}^{1 \times \ell}$, $\matB_i'
+=\round{\tfrac{q'}{q}\matB_i} \in R_{q'}^{1 \times \ell}$. 
+
+Let $\tilde{\matA} = \tfrac{q'}{q}\matA$, $\tilde{\matB}_{i} =
+\tfrac{q'}{q}\matB_i$. 
+
+
+
+
+
+Now, choose 
+
+where 
+
+where $s \in R_q$ 
+
+
+
+
+% with 
+% $\vecg^t = (1,2,4,\ldots, 2^{\floor{\log_{2}(q)}-1})$. 
+
+
+
+
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "newlattsigs"
+%%% End:

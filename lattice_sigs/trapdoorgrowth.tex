@@ -1,0 +1,277 @@
+
+\section{Reducing Trapdoor Growth}
+\label{sec:redtrapgrowth}
+
+\newcommand{\sign}{\textsf{sign}}
+\newcommand{\Exp}{\mathbb{E}}
+Here we give our improved $\matG$-sampling algorithm.
+
+\subsection{Distribution Definition and Properties}
+\label{sec:lemm-about-distr}
+
+\begin{definition}\label{def:dist-def}
+Let $q\geq 2 \in \Z$. Let $\matA \in \Z_q^{n
+  \times m}$ such that linear combination of its columns generate all
+of $\Z_q^{n}$, and let $\vecu \in \Z_q^{n}$.
+We define $B_{\lamperp_{\vecu}(\matA),s}$ as the distribution which
+outputs $\vecz \in \Z_q^m$, where each element of $\vecz$ is chosen to
+be some integer $x \in [-s,\ldots,+s]$ with probability $\tfrac{(s+1-\abs{x})}{(s+1)^2}$, conditioned on
+$\matA\vecz=\vecu$. 
+\end{definition}
+
+For the remainder of Section~\ref{sec:redtrapgrowth}, we focus only on 
+$B:=B_{\lamperp_{u}(\vecg^t),p-1}$, where  $q=p^k$ and $\vecg^{t}$ is the ``gadget''
+vector $\vecg^{t}=[1,p,\ldots,p^{k-1}] \in \Z_q^{1 \times k}$.
+\begin{lemma}\label{lem:centered-subgaussian}
+For all $u \in \Z_q$,
+$B_{\lamperp_{u}(\vecg^t),p-1}$ is a centered subgaussian with parameter
+$(p-1)$.
+\end{lemma}
+
+\begin{proof}
+Denote by $\vecg^{(j)}$ the first $j$ vectors of $\vecg$. 
+We make the inductive
+assumption that over the integers,
+$\inner{\vecg^{(j)},\vecz}=u$ with probability
+$\max(0,\tfrac{p^j-\abs{u}}{p^{2j}})$, which immediately
+implies centering.
+
+For $j=1$, the condition is satisfied.
+Now, assume our hypothesis is true for all $k < j$.
+Let $\vecx=(\tilde{\vecx} \in \Z_q^{k-1}, x_k)$, and let 
+Let $y=\inner{\vecg^{(k)},\vecx}$ (over the integers), and let 
+$y^*=\inner{\vecg^{(k-1)},\tilde{\vecx}}$, so $y=y^*+x_k$. 
+Let $u=y \bmod{p^{k-1}}$ be the unique coset representative of $y$ in
+$\Z_{p^{k-1}}$, and let $t$ be such that $p^{k-1}t+u=y$. 
+Then either $y^*=u$, $x^k=t$, or $y^*=u-\sign(u)p^{k-1}$ and
+$x^k=t+\sign(u)$. 
+As a result, the probability over the choice of $\vecx$ that
+$\inner{\vecg^{(k)},\vecx}=y$ is
+\begin{align*}
+\rho&=(p^{k-1}-\abs{u})(p-\abs{t})+(p^{k-1}-\abs{u-\sign(u)p^{k-1}})(p-\abs{t+\sign(u)})p^{-2k}\\
+&=p^{-2k}(p^k-u-p^{k-1}t)=p^{-k}-yp^{-2k}.
+\end{align*}
+The inductive assumption being satisfied, the distribution is centered conditioned on any $u$. 
+To see that it is subgaussian with parameter $(p-1)\sqrt{k}$, it is
+sufficient to note that for any $\vecx$ in the support of $B$, $\max_{\length{\vecu}=1}\inner{\vecu,\vecx}
+\leq (p-1)$, since all coordinates are by bounded by $\pm (p-1)$.
+\end{proof}
+
+By the standard properties of subgaussian distributions and the form
+of the decomposition of $\matG$, we immediately have the following corollary, which allows us to
+achieve noise growth rate $\tilde{O}((p-1)\sqrt{n})$ per multiply instead
+of $\tilde{O}((p-1)n)$ (assuming we can efficiently sample the distribution).
+\begin{corollary}\label{cor:sampleGsub}
+For all $u \in \Z_q$, $q=p^{k}$
+$B_{\lamperp_{\vecu}(\matG),(p-1)}$ is a centered subgaussian with parameter
+$(p-1)$.
+\end{corollary}
+
+
+The following lemma is necessary for sampling $B_{\lamperp_{u}(\matG),p-1}$ in
+practice.
+
+\begin{lemma}\label{lem:uniformity}
+For $\vecx \gets B^k$, $\inner{\vecg,\vecx}$ is uniformly distributed
+modulo $q$.  
+\end{lemma}
+\begin{proof}
+It is easy to see that the $k$th element of $\vecx$ randomizes the $k$th
+least significant mod-$p$ digit of $\inner{\vecg,\vecx}+q/2$ modulo $q$, so
+$\inner{\vecg,\vecx}$ must be uniform modulo $q$. 
+\end{proof}
+
+\paragraph{Sampling the Distribution.} The distribution can be sampled
+with two different approaches at the extremes of storage/parallelism trade-offs, or a hybrid of the two, in the same
+manner used for sampling a discrete Gaussian distribution over
+$\lamperp_{\vecu}(\matG)$ as described
+in~\cite{DBLP:conf/eurocrypt/MicciancioP12}. The advantage here is
+that instead of having to sample any discrete Gaussians in each
+coordinate with the various disadvantages thereof, we can sample
+$B_{\Z,p-1}$ in a very simple manner (and sample $B_{\Z^k,p-1}$ by
+sampling each coordinate independently according to $B_{\Z,p-1}$).
+
+Concretely, to generate a sample $B_{\Z,p-1}$, we receive 2
+(pseudo)random elements in $[0,1,\ldots,p-1]$, viewed as a single
+element $r \in [0,1,\ldots,p^2-1]$, and set the output $x$ to be $k$ with
+probability $\abs{p-k}{p^2}$, mapping values in $[0,1,\ldots,p^2-1]$ in
+the canonical manner. In particular,
+\[x= \begin{cases}-k& \text{if }
+  \tfrac{(p-(k)-1))(p-k)}{2} \leq r <
+  \tfrac{(p-k)(p-k+1)}{2} \text{ and } r < \ceil{p^2/2}\\
+k&\text{if }
+  \tfrac{(p-(k)-1))(p-k)}{2} \leq p^2-1-r < \tfrac{(p-k)(p-k+1)}{2} \text{ and } r \geq \ceil{p^2/2}
+\end{cases}
+\]
+
+Given the above algorithm for sampling $B_{\Z^k,p-1}$, as stated, we
+have two options at the extremes of storage/parallelism trade-offs, as
+well as various hybrids between the two.  The first is to precompute,
+sampling and storing many independent samples
+$\vecx \gets B_{\Z^k,p-1}$. Assuming that values $u$ for which samples
+of $B_{\lamperp_{u}(\vecg^t),p-1}$ are required are uniformly
+distributed modulo $q$ (which will generally be the case in our
+desired application), and that we will require $tq$ samples overall,
+by a coupon-collecting argument, we would have to store about
+$tq\log{q}$ samples to ensure we have enough on average, and $tq^2$ to
+ensure we have enough with overwhelming probability. 
+For the second approach, we sample each coordinate one at a time in a
+randomized nearest-plane
+manner~\cite{DBLP:conf/stoc/GentryPV08,DBLP:conf/eurocrypt/MicciancioP12}. Specifically, 
+for $i=1, \ldots, k$: choose $x_i \gets B_{p\Z+u,s}$, and let $u
+  \gets (u-x_i)/p \in \Z$. This approach requires $\log{q}$ steps, but
+  this is essentially no worse than bit decomposition because sampling
+  $B$ is so efficient. There is also a hybrid between the two
+  approaches that involves choosing  $\ell$ coordinates of $\vecx$ at
+  a time for $1 < \ell < k$. For further details,
+  see~\cite{DBLP:conf/eurocrypt/MicciancioP12}. The key takeaway is
+  that we can avoid the additional time and/or space costs of
+  rejection sampling (which is potentially problematic in applications
+  because it does not run in so-called ``constant time'')
+  or storing tables of results that are required for sampling discrete Gaussians.
+
+
+
+\subsection{How to Inject Verifiable Randomness}
+\label{sec:how-inject-rand}
+Above, we showed how randomizing the computation of
+the homomorphic trapdoor functions can significantly reduce noise
+growth without significantly increasing computation time. 
+
+We give a semi-generic method of injecting verifiable randomness into the
+homomorphic computation, that can be applied in essentially all
+cryptographic schemes using key-homomorphic trapdoor functions. We also discuss a further optimized method of randomness
+injection that applies to $\matG$-based signature schemes that use
+chameleon hash functions to randomize the messages being signed. 
+
+\subsubsection{Generic Method}
+\label{sec:generic-method}
+The trivial method of injecting verifiable randomness into the
+homomorphic computation is to simply include all of the random bits
+needed as part of the ciphertext or signature. 
+
+While this approach may
+be acceptable for very simple functions, for more complex functions it
+will increase the size of the ciphertext or signature by an
+unacceptably large amount. 
+However, it is sufficient to simply include $\lambda$ bits in each
+signature or ciphertext, where
+$\lambda$ is the desired security parameter, and to stretch those bits
+to the necessary length with a pseudorandom number generator specified as a
+public parameter of the scheme in question. A cryptographically secure pseudorandom number
+generator is \emph{not} required for this purpose, as we do not need
+the generated bits to be computationally indistinguishable from random
+under \emph{all} polynomial-time statistical tests. Instead, the role
+of the PRG here is similar to that of the PRF used by Hohenberger and
+Waters~\cite{DBLP:conf/crypto/HohenbergerW09} in their short,
+stateless signature scheme, where they simply needed the output of the
+PRF to be randomly distributed with respect to several \emph{non-adversarial}
+statistical tests.
+
+Indeed, for our bounds from Section~\ref{sec:lemm-about-distr} to hold for
+a given pseudorandom number generator $G$, we simply need
+$B_{\lamperp_{u}(\vecg^t)}$ to remain a centered subgaussian with
+parameter $\sqrt{k}$ when the bits used in sampling $B$ come from
+$G(\vecx)$, where $\vecx$ is a seed chosen uniformly at random. As a
+result, any heuristic pseudorandom number generator suitable for Monte
+Carlo simulations ought to be satisfactory.
+
+\subsection{Using  Chameleon Hash Functions}
+\label{sec:using-chameleon-hash}
+
+In signature
+schemes that already use chameleon hash functions to randomize the
+messages being signed, we show that it is sufficient to
+simply include an additional $\lambda$ bits of randomness in the
+public key. 
+We stress that the signatures remain stateless, as we
+reuse the same $\lambda$ bits of verifiable randomness in the
+homomomorphic computation of each individual signature. 
+
+We now present a (semi)-formal transformation. 
+While the conditions required
+of the transformation seem very specific, they do apply to several
+previous lattice-based signature
+schemes~\cite{DBLP:conf/crypto/DucasM14,DBLP:conf/pkc/Alperin-Sheriff15}
+as well as to our scheme.
+
+
+Let $\sig = (\siggen, \sigsign, \sigver)$ be a secure
+lattice-based signature scheme which applies a secure
+hash function $ch=(\chgen,\chhash,\chinv)$ to the messages and then
+deterministically evaluates a $\matG$-based key-homomorphic trapdoor
+function requiring $\ell$ invocations of $\matG^{-1}$ (meaning a total
+of $2\ell n^2k^2$ random bits) in the signing and verification
+algorithms. We construct $\sig'=(\siggen',\sigsign',\sigver')$ as
+follows:
+
+\begin{description}
+\item[$\siggen'(1^\lambda)$] Run $\siggen$, sample $\lambda$ random
+  bits, choose some secure
+  $\algo{PRG}$ and
+  output the $\lambda$ random bits $\vecb$ along with a description of the
+  pseudorandom generator. 
+\item[$\sigsign'(\mu)$] Run $\sigsign$, but evaluate the $\matG$-based
+  key-homomorphic functions using the $2\ell n^2 k^2$ bits output by
+  $\algo{PRG}(\vecb)$. Output signature $\sigma$.
+\item[$\sigver'((\mu,\sig))$] Run $\sigver$, but evaluate the $\matG$-based
+  key-homomorphic functions using the $2\ell n^2 k^2$ bits output by
+  $\algo{PRG}(\vecb)$. Output the result of $\sigver$. 
+\end{description}
+
+For stating our result, it will be convenient to view the signature
+scheme as being instantiated by a PHTDF which evaluates some
+function $g$ admissible with parameter $s$. All standard model lattice-based
+signature schemes that we are aware of which use $\matG$-based
+trapdoors can be described in this manner.
+
+\begin{theorem}[Informal]\label{thm:ch-transform} If $\sig$ is evaluates a
+  function admissible with parameter $s$, then
+$\sig'=(\siggen',\sigsign',\sigver')$ evaluates a function admissible
+with parameter $\sqrt{s}$. 
+\end{theorem}
+
+\begin{proof}
+  That the scheme remains secure is straightforward. The only change is the
+  manner in which
+  $\matG^{-1}$ is evaluated, and this depends only on the extra $\lambda$ bits
+  $\vecb$ in the public key and the pseudorandom generator
+  $\algo{PRG}$. In particular, the evaluation is performed entirely
+  independently of the scheme's secret key. As a result, this change
+  leaks no additional information, and so the scheme remains secure. 
+
+It remains to show that the function is admissible with parameter
+$\sqrt{s}$. If $\matG^{-1}$ were evaluated with truly random bits,
+this would informally follow by noting
+the growth rate of $\matG^{-1}$ in Corollary~\ref{cor:sampleGsub}
+versus the growth rate from bit decomposition.
+
+ First, consider an individual message query $\mu$ by the
+  adversary. Since the scheme uses chameleon hash functions, the
+  actual (hashed) messages being signed are randomized, and in
+  particular, chosen in a manner independent of the $\lambda$ random
+  bits in the public key.
+
+  As a result, we may view the message as having been chosen first,
+  and the $\lambda$ random bits as having been chosen subsequently and
+  uniformly at random and independently. As a result, as above, the
+  probability that the function is admissible with parameter $\sqrt{s}$
+  using $\algo{PRG}(\vecb)$ as our source of randomness is at most
+  negligibly smaller than the probability that the function is
+  admissible with parameter $\sqrt{s}$ using truly random bits as our source of
+  randomness. To reiterate, this is because a noticeable difference in
+  the probabilities would mean that we have a statistical test that is
+  entirely independent of the seed $\vecb$, and would thus break the assumed
+  pseudorandomness of $\algo{PRG}$. 
+
+  A simple union bound over the $Q=\poly(\lambda)$ message
+  queries means that the scheme remains correct except with negligible
+  probability.
+\end{proof}
+
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "newlattsigs"
+%%% End:	

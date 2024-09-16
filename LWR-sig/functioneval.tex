@@ -1,0 +1,410 @@
+\section{Improved Signature Scheme With Tight Security}
+\label{sec:func-eval}
+
+\jnote{TODO: 1) Separate out the W-PRF secret key (which should be
+  $\vecs \in \calT^{\kappa-2}$ and the final 2 elements, which
+  should be $z^{(0)}=0$, $z^{(1)}=1$.)
+}
+\jnote{TODO: 2) $\tdfencode$ may stretch the input, so $\calT^{\ell}$
+  is what it should have as the output space}
+
+
+In this section, we define our improved signature scheme, and prove
+security with a tight reduction. We also discuss how to 
+homomorphically evaluate our weak PRF in an efficient manner. 
+
+To avoid the clunky notation that has characterized many lattice-based
+constructions (and indeed, many cryptographic constructions in general), we write
+the scheme generically in terms of the PHTDF cryptographic primitive,
+as well as in terms of a generic weak PRF and chameleon hash function,
+and then focus on the homomorphic evaluation details in Section~\ref{sec:weak-prf-evaluation}.
+
+\subsection{Parameters}
+\label{sec:sig-params}
+Here we discuss the basic parameters of the scheme and the
+requirements they need to satisfy. All parameters in the scheme are
+parameterized by an underlying security $\lambda$. 
+We have that $\alpha,w=\theta(\lambda)$. We will have that $\calT=\Z_q$.  The form of the
+parameter $\kappa\geq 2$ depends on the concrete instantiation and evaluation of the
+PHTDF. We defer details to
+Section~\ref{sec:weak-prf-evaluation}. 
+
+We need $\weakprf: \calT^{\kappa-2} \times \calT^{w-1} \to \bit$ be an
+$(\epsilon_{\weakprf},t_{\weakprf})$-secure weak pseudorandom
+function, where $\calT^{\kappa-2}$ is the keyspace and $\calT^{w-1}$ is the
+input space. 
+
+For convenience reasons, we also need the PRF to be trivial in the
+(negligibly likely) case that $\calT^{k-2}=\veczero$; formally, we need $\weakprf(\veczero,\cdot)=0$ for all
+$\vecy \in \calT^{w-1}$. This property is satisfied naturally by $\lwr$, and it
+and we can construct such a weak PRF from an arbitrary weak PRF
+$\weakprf'$ by setting
+
+\[\weakprf(\vecs,\vecy):=\weakprf'(\vecs,\vecy)\oplus
+\weakprf'(\veczero,\vecy).\]
+
+
+
+We also need $\ch = (\chgen,\chhash,\chinv)$ to be a secure chameleon
+hash function family such that the input space $\calX$ is efficiently
+sampleable and grows in size as a
+(polynomial) function inthe underlying security parameter $\lambda$
+and such that the output space
+$\calY=\calT^{w-1}$. This can be achieved essentially without loss of
+generality, as long as there is an efficiently
+computable embedding of the output space $\calY$ into
+$\calT^{w-1}$. We use $w-1$ instead $w$ because we will be appending a
+bit $b$ to $\vecy \in \calT^{w-1}$ as input to the function $g$ that
+will be evaluated homorphically.\jnote{TODO: Cite specific instantiation}
+
+We define $g:\calT^{\kappa} \times \calT^{w} \to \calT$ as
+\begin{equation}\label{eq:def-g}
+g((\vecs,z^{(0)},z^{(1)}),(\vecy,b))=(1-z^{(b)})-\weakprf(\vecs,\vecy).
+\end{equation}
+
+In the above equation, $\vecy \in \calT^{w-1}$ will be the output of a
+chameleon hash function, and $\vecs \in \calT^{\kappa-2}$ will be the
+secret key for the weak PRF. 
+
+
+
+Finally, we need $\phtdf=(\phtdf.\tdfgen, \phtdf.\gentrap,$\\ 
+$\phtdf.f,\phtdf.\tdfinv,\phtdf.\evaltd,\phtdf.\evalfunc)$ to be an $(\epsilon_{\phtdf},t_{\phtdf},g,\calS)$
+CRP-secure PHTDF family, where $\calS=\calT^{\kappa-2}$. 
+
+
+
+\subsection{Construction}
+\label{sec:construction}
+We explicitly sample the tag encoded in the
+public key and add it to the signing key for use in
+signing. We also make the use of a chameleon hash function explicit,
+and we implicitly require the input space $\calX$ for the chameleon
+hash function to satisfy shortness properties (and be such that $\abs{\calX}=2^{\Omega(\lambda)}$, which is indeed the
+case for the Ducas-Micciancio chameleon hash function family construction.
+
+\paragraph{Encoding the PRF secret key.}\label{sec:prf-sec-encoding}
+Often, including in the instantiation we detail below in Section~\ref{sec:weak-prf-evaluation}, the
+way of encoding the weak PRF secret key $\vecs$ into the verification key
+will be something other than its ``natural representation,'' and we
+abstract this out with the additional utility function $\tdfencode:\calT^{\kappa} \to \calT^{\ell}$.
+
+
+
+\begin{description}
+\item[$\siggen(1^{\lambda})$] On input security parameter $\lambda$,
+\begin{enumerate}
+\item Choose $v \gets \calV$, $\vecs\gets
+  \calT^{\kappa-2}$. Set $z^{(0)}=0,z^{(1)}=1$. Compute $\tilde{\vecz}
+  = \tdfencode(\vecs, z^{(0)}, z^{(1)}) \in \calT^{\ell}$.
+\item Compute $(ek,td) \gets \ch.\chgen(1^{\lambda})$, $pk \gets \phtdf.\tdfgen(1^{\lambda})$
+\item Compute  $\{(a_i, r_i) \gets \phtdf.\gentrap(pk,\tilde{\vecz}_i)\}_{i \in [\ell]}$.
+\item Output $vk=(pk,\veca=\{a_i\}_{i \in [\ell]},ek,v)$, $sk=(\vecr=\{r_i\}_{i \in [\ell]},td,\vecz)$
+\end{enumerate}
+\item[$\sigsign(vk,sk,\mu)$] On input message $\mu \in \bit^{\alpha}$, secret key $sk$,
+  verification key $vk$:
+\begin{enumerate}
+\item Sample the input randomness to the chameleon hash function $x
+  \gets \calX$, compute the output $\vecy=\ch.\chhash(x,\mu)$, and
+  then evaluate the weak pseudorandom function at $\vecy$ to get $b=\weakprf(\vecs,\vecy)$.
+\item Perform the homomorphic evaluation of $g$ over the PHTDF to get $r^* \gets \evaltd(g, (\veca,\vecr),(\vecy,b))$, $a^* \gets \evalfunc(g,\veca,(\vecy,b)).$
+\item 
+Invert the trapdoor function to compute $u \gets \phtdf.\tdfinv_{r^*,pk,a^*,x,s}(v)$. Output
+  $\sigma=(u,x,b)$ as the signature.
+\end{enumerate}
+\item[$\sigver(vk,\mu,\sigma)$] On input message $\mu \in \bit^{\alpha}$,
+  verification key $vk$, signature $\sigma=(u,x,b)$:
+\begin{enumerate}
+\item Compute $\vecy \gets \ch.\chhash(x,\mu)$. 
+\item Compute  $a^* \gets \evalfunc(g,\veca,(\vecy,b))$
+\item 
+Verify that the $\phtdf.\tdfprop(x)$\jnote{TODO: how to verify shortness}
+
+$\phtdf.\tdfprop(u) \leq s$, and that $\phtdf.f_{pk,a^*,x}(u)=v$.
+\end{enumerate}
+\end{description}
+
+\paragraph{Correctness.} Since $b=\weakprf(s,\vecy)$, we have that
+$g(s,(\vecy,b))=1-b-b=1-2b=\pm 1$ whenever $b \in \bit$. Since this will
+always be an invertible element of the ring $\calT=R_q$, we have that
+$\phtdf.\tdfinv$ will invert successfully, and so verification will
+succeed with all but negligible probability.
+
+
+\subsection{Security}
+\label{sec:security}
+
+\paragraph{Security.} We now prove that the signature scheme in Section~\ref{sec:construction} is
+  secure.
+\begin{theorem} Let $\Adv$ be a PPT adversary which breaks eu-acma
+  security of the scheme in Section~\ref{sec:construction} in time $t$
+  with advantage $\epsilon$. Then there exists an $\Adv'$ which runs
+  in time $t+\poly(\lambda)$ and breaks the security of one
+  of the weak PRF, the chameleon hash function and the PHTDF with
+  advantage at least $\epsilon/3$.
+\end{theorem} 
+\begin{proof}
+We classify a successfully forging adversary into one of three
+mutually exclusive categories, and show that each category of adversary can be
+used for a successful attack on one of the cryptographic
+primitives underlying our scheme.
+
+Our reduction then proceeds by guessing uniformly at
+random which of these three categories our adversary belongs to and
+running the attack below corresponding to that category of adversary. It
+is easy to see that we will succeed in breaking one of the underlying
+cryptographic primitives with advantage at least $\epsilon/3-\negl(\lambda)$. 
+
+To complete our proof, we proceed to describe these categories of adversaries and how we
+use them to mount an attack on the underlying cryptographic primitives
+that succeeds except with probability negligible in the underlying
+security parameter $\lambda$.
+
+ \paragraph{Weak PRF.} First, we consider the case that, conditioned on
+ having forged successfully, the adversary outputs $\mu$,
+  $\sigma=(u,x,b)$ such that $\weakprf(\vecz,(\chhash(x,\mu))=b$. For this
+  case, we use $\Adv$ to help us succeed in the underlying $\weakprf$
+  security game against some challenger. 
+
+We change our behavior in the
+  signature scheme's security game as follows:
+\begin{enumerate}
+\item
+Instead of encoding the challenger's actual $\weakprf$ secret key (which we do not
+know), we set the secret key $\vecz=(\vecs,\vecz_{k-1},\vecz_{k})$ in our scheme
+  to a dummy secret key of $(\veczero,0,0)$ in $\siggen$, which will
+  always allow us to sign regardless of the value of the
+  $b=\weakprf(\vecs,\vecy)$. 
+
+Since the $a_i$ output by $\phtdf.\gentrap$ are statistically close to
+uniform, independent of the $\vecz$ encoded in them, and everything
+else in the public key is completely independent of $\vecz$, this change is
+  statistically indistinguishable. 
+\item Given a query for message $\mu$, we send a query to the
+  $\weakprf$ challenger, receiving back a uniform random
+  $\vecy \in \calT^{w-1}$, $b=\weakprf(\vecs,\vecy)$ for some unknown
+  $\vecs$. We then compute $x \gets \chinv(\mu,\vecy)$ as usual.
+  Since $\vecy$ is uniform, this is distributed within negligible
+  statistical distance of the manner it is chosen actual signature
+  scheme.  Moreover, since by our condition on $\weakprf$ we will
+  have that $g(\vecz,(\chhash(x,\mu),b))=1-z_{\kappa-b}-0=1$, we can invert
+  successfully and sign as usual.
+\end{enumerate}
+As a result, our behavior in this game is statistically
+indistinguishable from that in the real game.   At the end, if the adversary fails
+  to output a valid signature, we choose a message $\mu^*$ and bit
+  $b^*$ uniformly at random and send them to the $\weakprf$ challenger as our
+  guess. Otherwise, if the adversary is successful and outputs a valid
+  signature $\sigma=(u^*,x^*,b^*)$, we send that $\mu^*, b^*$ to the
+  challenger.  Since the adversary will
+  correctly predict $b$, we
+  succeed in guessing the output of the $\weakprf$ at $\mu^*$.
+
+Otherwise, a successfully forging $\Adv$ outputs $\mu^*$, $\sigma^*=(u^*,x^*,b^*)$ such
+that $\weakprf(\vecz,(\chhash(x^*,\mu^*)) \neq b^*$. In this case, we
+consider whether or not the forgery was achieved based on a hash
+collision. 
+\paragraph{Chameleon Hash Collision.} We consider the case that  $\Adv$ finds a hash
+collision by successfully outputting $\mu^*,\sigma=(u^*,x^*,b^*)$ such that
+$\chhash(x^*,\mu^*)=\chhash(x',\mu')$ for some $x',\mu'$ it already
+queried on,  conditioned on a successful forgery and an unsuccessful weak
+PRF prediction. We now show how to use $\Adv$ to
+break the collision-resistance of the chameleon hash function
+family. We change our behavior in the security game as follows:
+\begin{enumerate}
+\item In $\siggen$, we receive the evaluation key $ek$ for the
+  chameleon hash function from a challenger instead of generating it
+  (along with a trapdoor) ourselves. The public key itself remains
+  exactly the same (although we no longer have $td$ in our secret
+  key), so the adversary's view does not change.
+\item In Step 1 of $\sigsign$, we instead sample $x \gets
+\calX$, and then compute $\vecy = \chhash(x,\mu)$. By the uniformity
+property of the collision-resistance hash function, this is within
+statistically negligible distance of the manner $x$ and $\vecy$ are
+evaluated in the actual scheme.
+\end{enumerate}
+Since our behavior is statistically indistinguishable from that in the
+real game, $\Adv$ will still output a forgery such that 
+$\chhash(x^*,\mu^*)=\chhash(x',\mu')$ for some previously output $x',
+\mu'$. We can then send
+$x',x^*,\mu',\mu^*$, succeeding in breaking the collision-resistance
+of the chameleon hash function. 
+
+\paragraph{PHTDF Collision When Punctured.} Finally, if $\Adv$ has
+forged successfully, but has neither successfully predicting the weak
+PRF output nor output  a successfull chameleon hash collision,
+we can break collision-resistance when punctured (CRP)-security of the
+PHTDF. We change our behavior in the security game as follows:
+\begin{enumerate}
+\item During $\siggen$, we choose a message $\mu'$ uniformly at
+  random. Then, instead of choosing $v \gets \calV$, 
+we invert the process,  sampling
+  $u' \gets D_{\calU}$, $x' \gets \calX$. We then let
+  $\vecy'=\ch.\chhash(x',\mu')$, $b=\weakprf(\vecs,\vecy')$, and compute
+  $a' \gets \evalfunc(g,\veca,(\vecy',1-b))$. 
+
+Finally, we set
+  $v \gets f_{pk,a',x'}(u')$, and hold onto $u'$ to use in forming our
+  collision. By the statisticial distributional
+  equivalence of inversion property of the PHTDF, this is
+  statistically indistinguishable from having sampled $v \gets \calV$
+  as in the real security game. Moreover, we have that
+  $g((\vecs,z^{(0)},z^{(1)}),(\vecy',(1-b)))=0$.
+\end{enumerate}
+If the adversary outputs a successful forgery
+$(\mu^*,\sigma^*=(x^*,u^*,b^*))$, where
+$\weakprf(\vecs,(\chhash(x^*,\mu^*))=1-b$, then because $\Adv$ has no
+knowledge of the $x'$ we sampled above, with all but 
+probability $1/\abs{\calX}=\negl(\lambda)$, $x^* \neq x'$. If they are in fact not equal, we can
+output $u',x',\vecy',u^*,x^*,\vecy^*=\chhash(\mu^*,x^*)$ as our collision,
+breaking the CRP security of the underlying PHTDF except with
+probability negligible in $\lambda$. 
+
+\end{proof}
+\subsection{Efficient Evaluation of $g$}
+\label{sec:weak-prf-evaluation}
+\jnote{TODO: they say it's not self-contained, fix it and say
+  more/needs more explanation}
+
+
+\jnote{Reprove cited theorem from DM paper, also make sure }
+
+Here we discuss how to homomorphically evaluate the
+function
+\[g(\vecz,(\vecy,b))=(1-z_{2-b})-\weakprf(\vecz,\vecy)\] 
+using a cyclotomic ring-based instantiation of PHTDFs in a manner that
+is (somewhat) efficient in terms of both time and noise growth, for
+the specific case that $\weakprf$ is the $\lwr$ function. This
+essentially boils down to efficiently evaluating the $\lwr$ function,
+as once $b=lwr_{k,Q,2}$ has been homomorphically computed, the
+remaining operations consist solely of additions. Our method of
+evaluation is very close to that of Ducas and
+Micciancio~\cite{DBLP:conf/eurocrypt/DucasM15}, but avoids any use of
+the general lattice setting for efficiency.
+
+
+
+
+
+
+
+
+
+% \begin{lemma}{Implicit in Proposition 6.2,~\cite{MilneANT}}
+% Let $p$ be a (rational) prime, $\zeta$ a primitive $p^r$th root of
+% unity for some $r\geq 1$. Then 
+% \[\prod_{i \in \Z_{p^r}^{*}}(1-\zeta^i)=\Phi_{p^r}(1)=p\]
+% \end{lemma}
+
+
+
+
+\subsubsection{Lagrange Interpolation over
+  $R_q$}\label{sec:lagr-interp-over}
+
+To evaluate the rounding part of the $\lwr_{n,Q,2}$ function homomorphically,
+we will need to be able to evaluate a function over $R_q$ (where $R=\O_{m}$) that sends $\zeta^i$ to
+$0$ when $i \in [-Q/4,Q/4)$, and sends $\zeta^i$ to $1$ otherwise.    
+
+% If $R_q$ were a finite field, we could immediately do so with Lagrange
+% interpolation. However, it is known that the $2^k$th cyclotomic polynomials are
+% reducible modulo every prime. 
+% While we could simply work over an embedded subfield $P^{\ell}$ of
+% sufficiently high degree $\ell$, this would either limit our choice of
+% rings or require a significant loss in parameters. Instead, we show
+% that Lagrangian interpolation will work over $R_{q}$ as long as $q$
+% and $m$ are coprime. 
+
+% \begin{lemma}\label{lem:prod_stuff}
+% \[\prod_{i=1}^{m-1}(1-\zeta^i) = m\]
+% \end{lemma}
+% \begin{proof}
+% We have that $X^{m}-1=(X-1)(X-\zeta)\ldots (X-\zeta^{m-1})$, so 
+% $(X^{m}-1)/(X-1)= \sum_{i=0}^{m-1}X^{i}$. Evaluating this at $X=1$
+% gives the required result.
+% \end{proof}
+
+% By multiplying each of the $m-1$ terms in the above product by
+% $\zeta^{j}$, we get 
+% \begin{corollary}\label{cor:invertibledenom}
+% For any integer $j$,
+% w\[\prod_{i \in [m], i \neq j}(\zeta^j-\zeta^i) = \zeta^{-j}m\]
+% \end{corollary}
+
+% As a result, as long as $m$ is invertible modulo $q$, the product of
+% the differences will be invertible, so we can use Lagrange interpolation to compute the degree
+% $m-1$ polynomial required to evaluate the
+% rounding part of the $\lwr$ function. 
+
+% \subsubsection{LWR Function Evaluation}
+% \label{sec:lwr-function}
+
+To homomorphically evaluate $\lwr_{n,Q,2}$ (where $Q=2^{\ell}=O(\lambda)$ for
+$\ell=\ceil{\log_2(\lambda)}$), it will be easiest to work directly over the $2^{\ell}$th cyclotomic
+ring $R=\O[2^{\ell}]$; this restricts us to odd moduli $q$ in the
+actual PHTDF instantiation over $R_q$. The actual evaluation process will then
+be as described in the work of Ducas and
+Micciancio~\cite{DBLP:conf/eurocrypt/DucasM15}, using $q=3^\alpha$ for
+some $\alpha$. We restate the
+relevant result here for $\lwr$, recall again that evaluating $\lwr$
+homomorphically 
+over a PHTDF instantiated in the ring setting.
+is morally equivalent to evaluating the decryption function. Note that
+the conditions on parameter $s$ assumes the use of the  sampling ideas
+found Section~\ref{sec:redtrapgrowth} to minimize the size of
+parameter $s$, for modulus $q=3^{\alpha}$. 
+\begin{theorem}[~\cite{DBLP:conf/eurocrypt/DucasM15}] Let $\phtdf$ be
+  instantiated over $R_q$, where $R=\calO[m]$, where $q$ and $m$ are
+  coprime. Then $\lwr_{n,Q,2}$ is
+  admissible with parameter $s=O(n^{1.5}\log{Q})$, and can be
+  evaluated with $O(n\log{Q})$ homomorphic operations, with the secret
+  key $\vecz \in \Z_Q^{n}$ encoded in $\kappa-2=n\log{Q}$ functions
+  $a_1, \ldots, a_{\kappa-2}$ with associated tags $\tilde{z}_1,
+  \ldots, \tilde{z}_{\kappa-2}$. 
+\end{theorem}
+
+We finally have the following corollary for a concrete instantiation
+using the PHTDF of Alperin-Sheriff (see
+Section~\ref{sec:punct-homom-trapd}). 
+
+\begin{corollary}[~\cite{DBLP:conf/eurocrypt/DucasM15}] Let $\phtdf$ be
+  instantiated over $R_q$, where $R=\calO[m]$, where $q$ and $m$ are
+  coprime. Then the above signature scheme is secure as long as both
+  of the following hold:
+\begin{itemize}
+\item  $\lwr_{n,Q,2}$ is secure for $n,Q=O(\lambda)$
+\item $\rsis$ is secure over $m$ with parameter
+  $\beta=\tilde{O}(n^{7/2})$.
+\end{itemize}
+\end{corollary}
+
+% For a weak PRF secret $\vecz \in \calT^{\kappa}$, for $i \in [kappa-2]$ we encode the $i$th coefficient
+% $z_{i}$ as $\zeta^{z_{i}}$ in the $i$th trapdoor function. For the
+% last two coefficients, recall
+% that $z_{\kappa-1}=0$ and $z_{\kappa}=1$ in the actual scheme, and that these are only
+% used in the very last step of computing the function $g$.
+
+
+% Let $c_0,\ldots,c_{q-1}$ be the coefficients of the polynomial (over
+% $R/qR$) that sends $\zeta^{q^2/4}, \ldots, \zeta^{3*q^2/4-1}$ to $1$,
+% $\zeta^{qi}$ to 0 for $i \notin [q/4,3*q/4-1]$. Such a polynomial
+% exists, and can be found efficiently via Lagrange interpolation (see
+% Section~\ref{sec:lagr-interp-over}).
+
+% We now show how to evaluate the LWR function on an input $\vecy \in
+% \calT^{w-1}$ (where $w=n+1$) over a homomorphically
+% encoded secret $\vecz$. In particular, for each $i$ we homomorphically compute 
+
+% \[x=\prod_{j \in [n]}(\zeta^{s_j})^{y_j},\]
+% viewing the exponentiation as the product of $y_j$ instances of
+% $\zeta^{s_j}$, and evaluating  the entire product in the standard asymmetric manner~\cite{DBLP:conf/innovations/BrakerskiV14,DBLP:conf/crypto/Alperin-SheriffP14} to keep the
+% noise growth quasi-additive. 
+
+% $b=\sum_{i \in [0,\ldots,q-1]}c_ix^i
+
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "newlattsigs"
+%%% End:

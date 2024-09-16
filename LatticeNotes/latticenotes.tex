@@ -1,0 +1,82 @@
+\newif\iflncs\lncstrue
+\documentclass[oribibl,envcountsect,envcountsame]{llncs}
+%\usepackage{times}        // Not Allowed for TCC ---Daniel
+%\usepackage{fullpage}    // Not Allowed for TCC submission ---Daniel
+\usepackage{microtype}
+\usepackage{tikz}
+\usepackage{amsmath,amsfonts,amssymb}
+%\usepackage{hyperref}
+% mathabx overrides many math fonts with ugly ones; instead, add
+% individual commands in head.tex (see declaration of \boxplus etc.)
+%\usepackage{mathabx}
+%\usepackage[amsmath,amsthm,thmmarks,hyperref]{ntheorem}
+
+\usepackage{float}
+\usepackage{mathtools}
+\usepackage{url}
+\usepackage{xspace}
+\usepackage{enumitem}
+
+% show equation numbers only for referenced equations
+%\mathtoolsset{showonlyrefs}
+
+\newif\iffull\fulltrue
+
+
+\input{head}
+%\input{paperhead}
+
+
+\newcommand{\Lat}{\Lambda}
+
+\newcommand{\setbad}{\textsf{BAD}}
+\newcommand{\setguesses}{\textsf{GUESSES}}
+
+
+\usepackage{xcolor}
+\newcommand{\daniel}[1]{Daniel: #1}
+\newcommand{\todo}[1]{TO-DO: #1}
+
+\pagestyle{plain}
+
+
+%%%%
+
+\title{Thoughts on PQ-PAKE}
+
+\begin{document}
+\section{Basic Thoughts}
+
+Let $1 \leq \ell < k$. Let $R$ be the ring of integers of some cyclotomic field (say 512 for Kyber compatibility).
+
+In this security game, we receive from $\Adv$
+ some $\matA \in R_q^{\ell \times k}, \vecb \in R_q^{k}$, both of which can potentially
+be any value. 
+
+We sample uniformly random $\matA_0, \matA_1 \in R_q{\ell \times k}$, 
+gaussians $\vecr \gets \chi^{k}$, $\vece \gets \chi^{\ell}$, $\hat{e} \gets \chi$,
+$\beta \gets bit$
+
+and send back 
+
+$$\matA_0, \matA_1, \vecu := \matA_{\beta}\vecr + \vece, \vecv := \vecb^{t}\vecr + \hat{e}.$$
+
+It is necessary for security that a malicious adversary will have negligible advantage in
+distinguishing $\beta=0$ from $\beta=1$.
+
+To prove this, we can do a straightforward porting of ~\cite{DBLP:conf/stoc/BrakerskiLPRS13}
+
+
+
+
+
+\bibliographystyle{alpha}
+\bibliography{lattices,crypto,ibe,fhe,numtheory}
+
+\end{document}
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

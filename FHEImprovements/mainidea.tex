@@ -1,0 +1,155 @@
+\section{Main Idea Sketch}
+\label{sec:mainidea}
+
+\subsection{Heart of Idea}
+\label{sec:heartofidea}
+
+
+
+
+Letting
+\[\matA=\begin{bmatrix}\bar{\matA}\\ \vecb^{t}\\\end{bmatrix}\] be the
+public key where $\vecb^{t}=\vecs^{t}\matA+\vece^{t}$ and $\vecs$ be
+the secret key, as usual in GSW-style encryption.
+
+Let
+$d=\log{m}=c\log{n}$ be the depth of the $\textsf{NC1}$ circuit to be
+evaluated. We consider for simplicity an $\textsf{NC1}$ circuit where
+every gate has fan-in two, fan-out 1. Due to the need to keep the
+message at all points during the computation at magnitude at most
+$1$ and for simplicity we limit the operations $\textsf{NAND}$ gates,
+$x \textsf{ NAND }
+y = (1-xy)$ \jnote{might be
+  faster/lower depth
+  to allow ANDs and NOTs alone}
+
+
+\jnote{TODO: nice image of such a thing}
+
+Begin with $m=\poly(n)$ initial ciphertexts. 
+\begin{equation}\matC^{(0)}_{i}:=\matC_{i}=\matA\matS_{i}+\mu_{i}\matG\end{equation}
+
+
+At depth $j$, define for $i \in [1,\ldots 2^{d-j}]$ to be 
+
+\[\matC^{(j)}_{i}:=1-(\matC^{(j-1)}_{2i - 1} \otimes
+  \matC^{(j-1)}_{2i}),\]
+where $\otimes$ denotes the standard GSW homomorphic multiplication operation.
+
+
+After evaluating the circuit, the resulting ciphertext $\matC^{*}$
+encrypting $\mu^*$ (the function computed) is 
+
+
+\begin{equation}\matC^{*}:=\matC^{(d)}_{i}:=\mu^{*}G+\sum_{i \in
+    [m]}\tilde{\matC}^{(d)}_{i},\end{equation}
+
+\paragraph{Term Equation.} 
+
+Each term $\tilde{\matC}^{(d)}_{i}$ is
+equal to 
+
+\begin{equation*}\label{eq:term_eq}\tilde{\matC}^{(d)}_{i}:=\tilde{\mu}^{(d)}_{i}\matA\matS_{i}\matF^{(d)}_{i},\end{equation*}
+
+
+\subsection{Zucking: Finding pre-images close to the Right-Side Terms}
+\jnote{TODO: part about finding matrix $\matZ^{(d)}_{i} \in \lamperp(\matG)$
+  such that $\length{\matZ^{(d)}-\matF^{(d)}_{i}}$ is short}
+
+In this subsection, we describe how to find pre-images close to the
+right-hand side noise of a single term of the form \jnote{multiplication noise? come up with
+  term}. 
+
+\begin{equation*}\label{eq:term_eq_2}
+  \mu^{*}\matA\matS_{i}\matF^{*}\end{equation*}
+
+given $\matF^{*}$ and a ciphertext encrypting 
+
+
+\begin{equation*}\matC^{(0)}_{i}:=\matC_{i}=JUNK+mu^{*}\matA\matS_{i}+\tilde{\mu}\matG.\end{equation*}
+
+For each column $\vecf^{*}_i$ of $\matF^{*}$, we find a $\vecz^{*}_{i}$ in $\lamperp(\matG)$  close to
+$\vecf^{*}_{i}$. Note that except with negligible probability, $\matF^{*}$
+will lie in a non-zero coset of $\lamperp(\matG)$. 
+Although finding such vectors $\vecz^{*}_{i}$ in $\lamperp(\matG)$ is
+hard in \emph{random lattices}, $\matG$ is designed specifically to
+make tasks like this easy. 
+
+In particular, the standard bit-decoding to find $\vecz^{*}_{i} \in
+\bit^{m}$ such that 
+\[\matG\vecz_{i}^{*}=\matG\vecf^{*}_i \bmod{q}\] should be
+sufficient, see ~\cite{DBLP:conf/eurocrypt/MicciancioP12} for details
+(\jnote{TODO: and add more})
+
+\jnote{TODO: I had something written up for one of our non-published
+  papers that should improve this a bit, should we add it?}
+
+
+
+\jnote{TODO: ignore JUNK initially?}
+
+
+\subsection{Path Through Circuit}
+\label{sec:path}
+
+\jnote{TODO: CAN'T HAVE R IN CIPHERTEXTS and message maybe change to $\matA\matS_{i}$}
+
+Since the fan out is 1, there is a single path from each input to the
+output (this fact appears to be crucial in our algorithm). In
+particular, the terms $\matC^{(j)}_{i \shiftright j}$ for $j \in
+[0,\ldots,d]$ make up the intermediate ciphertexts in the single path
+to the final result.
+
+Consider a term $\tilde{\matC}^{(d)}_{i}$
+
+Let \[L_{i} = \{\matC^{(j)}_{(i \shiftright j)-1} : (i \shiftright
+  j)\wedge 1=1), j \in [0,\ldots,d]\}\]
+be the 'ordered set' of ``left siblings'' of ciphertexts in the path
+for input $i$, and denote by $\matL_{i}^{\beta}$ the $\beta$th such
+element in the path (proceeding normally in the input to output
+direction). 
+
+Similarly, let \[R_{i} = \{\matC^{(j)}_{(i \shiftright j)+1} : (i \shiftright
+  j)\wedge 1=0), j \in [0,\ldots,d]\} \] be the ``ordered
+set''\jnote{TODO: reword} of ``right siblings'' of
+ciphertexts in the path for input $i$, and denote by $\matR_{i}^{\beta}$
+the $\beta$th such element in the path. 
+
+Then letting $\lambda_{i}=\abs{L_{i}}$, we have that, 
+
+\begin{equation}\tilde{\mu}^{(d)}_{i}=\prod_{\beta \in
+    [\lambda_{i},\lambda_{i}-1,\ldots,1]}
+  \pkcdec(\matL_{i}^{\beta})\end{equation}
+
+\jnote{explain why it's in backwards order}
+
+
+Similarly, we have that
+\begin{equation}\matF^{(d)}_{i}=\prod_{\beta \in
+    [\abs{\matR_{i}}]} \matG^{-1}(\matR_{i}^{\beta})\end{equation}
+
+Crucially, \emph{the evaluator can compute} the value of
+$\matF^{(d)}_{i}$. 
+
+
+
+
+\subsection{Unzucking/Blyat}
+
+
+In parallel for each $i$, we first compute 
+
+(in left-associative order should be fine since there
+are only at most $d=\log{m}$ terms ) 
+\[\matE_{i}:=\matL^{\lambda_{i}}\matG^{-1}(\matL^{\lambda_{i}-1}\matG^{-1}(\ldots
+  \matL_{1}\matG^{-1}(\matC^{(0)}_{i}))\ldots))\]
+
+
+Fuck that doesn't work does it blyat
+
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "fheimprovements"
+%%% End:

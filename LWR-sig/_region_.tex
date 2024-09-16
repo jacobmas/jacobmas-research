@@ -1,0 +1,97 @@
+\message{ !name(newlattsigs.tex)}\newif\iflncs\lncsfalse
+
+\documentclass[letterpaper,11pt]{article}
+\usepackage{times}
+\usepackage{fullpage}
+\usepackage{hyperref,microtype}
+\usepackage{amsmath,amsfonts,amssymb,amsthm}
+% mathabx overrides many math fonts with ugly ones; instead, add
+% individual commands in head.tex (see declaration of \boxplus etc.)
+%\usepackage{mathabx}
+%\usepackage[amsmath,amsthm,thmmarks,hyperref]{ntheorem}
+
+\usepackage{float}
+\usepackage{mathtools}
+\usepackage{url}
+\usepackage{xspace}
+\usepackage{enumitem}
+
+% show equation numbers only for referenced equations
+%\mathtoolsset{showonlyrefs}
+
+\newif\iffull\fulltrue
+
+\input{head}
+%\input{paperhead}
+
+
+\newcommand{\Lat}{\Lambda}
+
+\newcommand{\setbad}{\textsf{BAD}}
+\newcommand{\setguesses}{\textsf{GUESSES}}
+
+
+\usepackage{xcolor}
+\newcommand{\daniel}[1]{{\color{blue}Daniel: #1}}
+\newcommand{\todo}[1]{{\color{red}TO-DO: #1}}
+
+
+
+
+%%%%
+
+\title{New, Tighter Lattice-Based Signature Schemes}
+
+\author{%
+  Jacob Alperin-Sheriff \thanks{University of Maryland,
+    \texttt{jacobmas@umd.edu},
+    \texttt{\{dapon,jkatz\}@cs.umd.edu}}
+%
+\and Daniel Apon $^*$
+%
+\and Jonathan Katz $^*$
+}
+
+ 
+
+\begin{document}
+
+\message{ !name(newlattsigs.tex) !offset(-3) }
+
+ % \floatstyle{boxed}
+ % \restylefloat{figure}
+
+\maketitle
+\thispagestyle{empty}
+\begin{abstract}
+  \noteswarning
+  
+%\input{abstract}
+\todo{...}
+
+\end{abstract}
+
+% \paragraph{Keywords.} fully homomorphic encryption, bootstrapping,
+% lattice-based cryptography
+
+\clearpage
+\pagenumbering{arabic} 
+\input{intro}
+
+\input{functioneval}
+%\input{prelims}
+
+%\input{extlwe}
+%\input{lwetolwr}
+
+\bibliographystyle{alpha}
+\bibliography{lattices,crypto,ibe,fhe,numtheory}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
+
+\message{ !name(newlattsigs.tex) !offset(-97) }
