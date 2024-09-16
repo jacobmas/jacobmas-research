@@ -47,15 +47,15 @@
 \begin{document}
 \section{Basic Thoughts}
 
-Let $1 \leq \ell < k$. Let $R$ be the ring of integers of some cyclotomic field (say 512 for Kyber compatibility).
+Let $ 1 < k \in \Z$. Let $R$ be the ring of integers of some cyclotomic field (say 512 for Kyber compatibility).
 
 In this security game, we receive from $\Adv$
- some $\matA \in R_q^{\ell \times k}, \vecb \in R_q^{k}$, both of which can potentially
+ some $\matA \in R_q^{k \times k}, \vecb \in R_q^{k}$, both of which can potentially
 be any value. 
 
-We sample uniformly random $\matA_0, \matA_1 \in R_q{\ell \times k}$, 
-gaussians $\vecr \gets \chi^{k}$, $\vece \gets \chi^{\ell}$, $\hat{e} \gets \chi$,
-$\beta \gets bit$
+We sample uniformly random $\matA_0, \matA_1 \in R_q{k \times k}$, 
+gaussians $\vecr \gets \chi^{k}$, $\vece \gets \chi^{k}$, $\hat{e} \gets \chi$,
+$\beta \gets \bit$
 
 and send back 
 
@@ -64,7 +64,124 @@ $$\matA_0, \matA_1, \vecu := \matA_{\beta}\vecr + \vece, \vecv := \vecb^{t}\vecr
 It is necessary for security that a malicious adversary will have negligible advantage in
 distinguishing $\beta=0$ from $\beta=1$.
 
-To prove this, we can do a straightforward porting of ~\cite{DBLP:conf/stoc/BrakerskiLPRS13}
+
+I \textit{believe} that requiring $\matA$ to be invertible won't kill the protocol? 
+
+
+We should be able to do a straightforward if not too efficient
+porting of the extended-LWE internals found in Brakerski et al's "Classical Hardness of Learning with Errors"
+paper~\cite{DBLP:conf/stoc/BrakerskiLPRS13}.  
+
+\section{Extended LWE}
+\label{sec:ext-lwe}
+
+Recall from the formulation of the problem as in Brakerski et al's paper~\cite{DBLP:conf/stoc/BrakerskiLPRS13} 
+that the extended-LWE assumption (reformulated for arbitrary dimension module lattices 
+over arbitrary base rings) is as follows. 
+
+\begin{definition}
+Let $\calZ \subseteq R^{k}$. 
+The adversary $\Adv$ can choose an arbitrary $\vecz \in \calZ$, and sends it to the challenger.
+
+The challenger returns 
+$$(\matA, \vecb, \inner{\vece, \vecz}+\hat{e})$$
+
+and the adversary must distinguish between two cases. In the first case $\matA$ is chosen uniformly 
+at random, $\vecs, \vece \gets \chi^{k}$, $\hat{e} \gets \zeta$ (which may be the same as $\chi$ or may be uniquely 0)
+ and $\vecb := \matA^{t}\vecs + \vece$. 
+
+In the second case, everything besides $\vecb$ is chosen in the same way, but $\vecb$ is chosen uniformly at random 
+and independently of everything else.
+\end{definition}
+
+
+
+
+
+
+
+
+
+\section{Reducing Security of Protocol to Hardness of Extended LWE}
+\label{sec:proof-ext-lw}
+
+We can use an $\Adv$ breaking the PQ-PAKE described above to attack extended LWE as follows. 
+
+
+\begin{proof}We receive from the PQ-PAKE adversary $(\tilde{matA} \in R_q^{k \times k}, \tilde{\vecb} \in R_q^{k}$). 
+
+
+Let $\vecz = \tilde{\vecb}$, and send $\vecz$ to the extended-LWE challenger, 
+receiving back $\matA \in R_q^{k \times k}, \vecb, y := \inner{\vece, \vecz}+\hat{e}$. 
+
+Abort if $\matA$ is not invertible (with non-negligible probability it should be invertible).
+
+
+
+Otherwise, test the adversaries behavior for both $\beta=0$ and $\beta=1$ upon setting
+
+$\matA_{\beta} = \matA^{-1}$, $\vecu := \matA^{-t}\vecb$, $v := y$,
+$\matA_{1-\beta} \gets R_q^{k \times k}$ uniformly at random.
+
+
+If the extended-LWE instance was the first case above, then we have that 
+
+$\vecu := \matA^{-t}\vece+\vecs = \matA_{\beta}^{t}\vece+\vecs$ and 
+$v := \tilde{\vecb}^t\vece + \hat{e}$, so we have perfectly simulated the PQ-PAKE security game, 
+and $\Adv$ will have a non-negligible advantage in distinguishing $\beta=0$ from $\beta=1$. 
+
+
+However, if the extended-LWE instance was the uniform case above (where the returned $\vecb$ is 
+chosen uniformly and independently), then, since $\matA$ is invertible and $\vecb$ is
+chosen uniformly at random and independently, $\vecu$ will be statistically 
+indistinguishable from uniform over the view of $\Adv$, meaning that nothing whatsoever about 
+$\beta$ is leaked to the adversary and so the adversary will have 0 advantage in 
+distinguishing $\beta=0$ from $\beta=1$. 
+\end{proof}
+
+It remains to show that this formulation of extended-LWE can be reasonably seen as hard. 
+
+\section{Reducing Extended-(M)-LWE to (Lower Dimension) (M)-LWE}
+\label{sec:red-ext-lwe-lwe}
+Using similar arguments as in the Classical Hardness of Learning with Errors Paper, we should 
+be able to show that breaking $\textsf{Ext-LWE}_{R,k,q}$ is no easier than breaking 
+$\textsf{LWE}_{R,k-1,q}$ (with slightly less noise).
+
+\subsection{First Is Errorless (M)-LWE}
+\label{sec:first-errorless-m-lwe}
+
+We refer to the paper above for the definition of this problem, namely the first ring element of 
+$\vecb$ is errorless, and we show that $\textsf{1st Errorless LWE}_{R,k,q,\alpha}$ is no easier than breaking 
+$\textsf{LWE}_{R,k-1,q,\alpha}$
+
+As in the proof there (Section 4.1), we sample $\veca' \gets R_q^{k}$ 
+uniformly at random and abort if $\sum_{i \in [k]}^{a_i'} \subset R$ (i.e. the ideals 
+generated by the coordinates of $\veca'$ are not coprime).
+
+I believe they should be coprime as long as every coordinate in CRT form is non-zero 
+in at least one element; unfortunately this is not too likely for small $k$ 
+in schemes that use it completely splitting (like Kyber). 
+
+However, if we use a $q$ where $qR$ (in which case we can no longer do NTT multiplication 
+but hey, Bernstein warned us about how this is bad and should feel bad)
+is itself a prime ideal, then we will have that $\sum_{i \in [k]}^{a_i'} = R$ with 
+all but negligible probability even for $k=2$. 
+
+
+If we do use the case that $qR$ is itself a prime ideal and $k=2$, then it is easy 
+(just pick the rest of $U$ uniformly at random, and repeat if it's not invertible, since 
+it will be invertible with overwhelming probability). 
+
+The rest of the proof for first-is-errorless LWE should be a straightforward mapping of the 
+Classical Hardness paper.
+
+\subsection{Extended-LWE}
+
+I don't really feel like writing this last step out in module form before we've had a chance to discuss
+but it seems like it should work as well. 
+
+
+
 
 
 
