@@ -154,7 +154,7 @@ $\textsf{LWE}_{R,k-1,q,\alpha}$.
 
 \begin{lemma}
 There is an efficient transformation/reduction from $\mlwe_{R,k-1,q,\alpha}$ with \textit{uniform 
-secrets} to $\textsf{1st Errorless MLWE}_{R,k-1,q,\alpha}$ with \textit{uniform secrets}. 
+secrets} to $\textsf{\extmlwe}_{R,k-1,q,\alpha}$ with \textit{short secrets}. 
 \end{lemma}
 
 \begin{proof}
@@ -191,14 +191,21 @@ and
 \[\kappa_{j} = \begin{cases}1&\quad\text{ if } j \notin S\\
                             0&\quad\text{ otherwise}\end{cases}\]
 
-The remainder of the proof mostly follows~\cite{DBLP:conf/stoc/BrakerskiLPRS13}. We create a 
-matrix $U \in R_q^{k \times k}$ (invertible over $R_q$) such that its leftmost column is $\hat{\veca}$. 
+The remainder of the proof essentially follows~\cite{DBLP:conf/stoc/BrakerskiLPRS13} and 
+is included for completeness. We create a 
+matrix $\matU \in R_q^{k \times k}$ (invertible over $R_q$) such that its leftmost column is $\hat{\veca}$. 
 Such as matrix exists, and can be found efficiently. 
 \jnote{If there's no obvious faster way, we can choose the rest of the columns
  at random and show it has a non-negligible 
 chance of being invertible}
 
+We also pick a uniform $s_0 \in R_q$. The reduction now outputs $(\veca',\kappa \cdot s_0 \bmod{R_q})$ as 
+its first sample. 
 
+For each of the remaining samples, the reduction uses its $\mlwe$ oracle to sample $(\veca, b)$, 
+samples $d \in R_q$ uniformly at random, and outputs $(\matU(d|\veca), b + s_0 \cdot d)$ as the sample, where $|$ denotes concatenation.
+
+Let $\vecs' = (\matU^{-1})^{T}(s_0|\vecs) \bmod{R_q}$. 
 
 
 \end{proof}
