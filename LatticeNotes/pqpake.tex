@@ -208,6 +208,12 @@ samples $d \in R_q$ uniformly at random, and outputs $(\matU(d|\veca), b + s_0 \
 Let $\vecs' = (\matU^{-1})^{T}(s_0|\vecs) \bmod{R_q}$. 
 
 
+\jnote{The first sample is \textit{not} indistinguishable from uniform since every element of the first sample will always be a multiple of $\kappa$, so if $\veca' \neq \hat{\veca}$ then $b=\kappa \cdot s_0$ will \textit{not} be uniform. 
+
+However, this \textit{might} actually not be a problem for making the first-is-errorless to extended LWE go through, I need to think about it and write it up. 
+}
+
+
 \end{proof}
 
 ~\cite{DBLP:conf/crypto/ApplebaumCPS09}
@@ -216,9 +222,7 @@ Classical Hardness paper.
 
 \subsection{Extended-LWE}
 
-I don't really feel like writing this last step out in module form before we've had a chance to discuss
-but it seems like it should work as well. 
-
+TODO
 
 
 
