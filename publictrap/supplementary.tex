@@ -1,0 +1,52 @@
+\section{Supplementary Material}
+\label{sec:supplementary}
+
+
+\subsection{Supplemental Proof of Security }
+\label{sec:suppl-proof-secur}
+
+For completeness, we include the proof of security for
+Theorem~\ref{theoremsmall} for Scheme 2. 
+
+\begin{proof}
+Let $\calF$ be an adversary mounting an eu-scma attack against Scheme
+2 and succeeding with probability $\delta$ such that $g$ meets the
+conditions given in the theorem statement. Then by these conditions, given the $Q$ message hashes
+$(x^{(j)} = h(\mu^{(j)}) \in \calX)$ from the adversary and $Q$ tag
+vectors $T^{(j)} \gets D_{T^{\ell}}$ sampled, with probability
+$\epsilon_1$ we can find in
+polynomial time a $\hat{T}$ such that $g(\hat{T},T^{(j)})$ is
+invertible for all $j$. Otherwise, with probability $(1-\epsilon_1)$
+we abort. 
+
+If we do not abort, then we invoke the $(\epsilon^*, t=\poly(\lambda),
+g, (\hat{T},\hat{T}'))$-CRP security game, receiving back $pk$ and
+$\veca$. We then choose some $\bar{T} \in \calT^{\ell}$ such that
+$g(\hat{T},\bar{T})=0$ and sample some $\bar{x}$ from the set of elements in
+$\calX$ not in the range of the hash function $h$. We then compute
+$\bar{a} = \evalfunc(g,\veca,\bar{T})$, sample $\bar{u} \gets
+D_{\calU}$ and set $v \gets f_{pk,\bar{a},\bar{x}}(\bar{u})$. By the
+distributional equivalence of inversion property of the PHTDF, this is
+statistically indistinguishable from having chosen $v \gets \calV$. 
+
+We then provide the public key $(pk,\veca,v)$ to the adversary. To
+compute signatures for each hashed messages $x^{(j)}$, we make an
+inversion query to the CRP oracle on $v, x^{(j)}, T^{(j)}$, receiving
+back $u_j$ and outputting $\sigma_j=(u_j,T_j)$ as the signature. By
+the properties of the PHTDF, this is indistinguishable from the real
+eu-scma attack game. 
+
+Now, with probability $\epsilon_2$ the tag $T^*$ used by the adversary
+in a successful forgery $(\sigma^*=(u^*,T^*))$ on a (hashed) message
+$x^*=h(\mu^*)$ will be such that $g(\hat{T}, T^*)=0$. Then letting
+$a^*=\evalfunc(g,\veca,T^*)$, we have that 
+\[f_{pk,a^*,x^*}(u^*) = f_{pk,\bar{a},\bar{x}}(\bar{u})=v,\]
+where $x^* \neq \bar{x}$ and  $\tdfprop(u^*), \tdfprop(\bar{u}) \leq
+s$, and as a result, we have broken the $(\epsilon^*, t=\poly(\lambda), g, (\hat{T},\hat{T}'))$-CRP
+security of the underlying PHTDF with probability $\epsilon^* =
+(\delta - (1-\epsilon_1))\epsilon_2$.
+\end{proof}
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "newlattsigs"
+%%% End:
