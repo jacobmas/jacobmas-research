@@ -1,0 +1,80 @@
+\section{Ideas}
+\label{sec:ideas}
+
+
+Let $\matA = [\bar{\matA} \mid \matG - \bar{\matA}\matR]$ be a Micciancio-Peikert~\cite{DBLP:conf/eurocrypt/MicciancioP12} style trapdoor.
+
+Let $\matB$ be the basis that is described for this lattice in that paper, 
+
+\[\matB = \begin{bmatrix}\matI&\matR\\\matzero&\matI\end{bmatrix} \begin{bmatrix}\matI&\matzero\\\matW&\matS\\\end{bmatrix}\]
+
+where $\matS$ is the basis for the gadget matrix $\matG$ and $\matW$ is an arbitrary solution to $\matG\matW = -\matA[\matI \mid \matzero]^t \bmod{q}$. 
+
+
+Assume $\matR$ is \emph{not} sampled to be as small as people, instead sampled to be "moderately sized" \todo{Elaborate}
+
+If this basis is made public to an adversary, is there any situation where LWE on $\matA$ would be hard? 
+
+
+
+
+Consider what we would normally think of as an LWE sample $(\matA, \vecb^t = \vecs^t\matA+\vece \bmod{q})$.
+
+Instead, let's consider $\matA$ as generating a (potentially hard) lattice, a la~\cite{DBLP:conf/stoc/GentryPV08}
+\[\lam(\matA) = \{\vecy \in \Z^m : \vecy = \matA^{t}\vecs \bmod{q} \text{ for some } \vecs \in \Z^n \}\]
+
+We also have 
+\[\lamperp(\matA) = \{ \vece \in \Z^m : \matA\vece = \veczero \bmod {q} \}\]
+
+where the two lattices are scaled duals of each other, i.e. 
+
+\[\lamperp = q \cdot \lam^*\quad\text{ and }\quad \lam = q \cdot (\lamperp)^*\]
+
+
+\jacob{I believe} we can consider $\vecb$ to, instead of being an LWE sample modulo $q$, to be its canonical embedding into $\Z^m$, and instead treat $\matB, \vecb^t/q$ as a \emph{BDD instance} (bounded CVP instance in Regev's paper, but that's really BDD) decoding to $(\lamperp)^*$. 
+
+ $x > \length{\vece}$ with overwhelming probability.  \todo{Look up to see what the lower bound is with overwhelming probability given upper bound is $d$ or maybe it's not needed}
+
+
+
+ At any rate, asssume there exists an algorithm $W$ that solves instance of $\matB, \vecb^t$ (generated as above) with non-negligible probability for the fixed $\matB$, variable $\vecb^t$. 
+
+
+
+
+
+
+If so, we can use the quantum step in Regev's seminal paper~\cite{DBLP:journals/jacm/Regev09}, which, given a BDD solver for a lattice $(\lamperp)^*$ within distance $d = x/q < \lambda_1((\lamperp)^*)/2$, outputs a sample $\vecz \gets D_{\lamperp, \sqrt{n}q/(\sqrt{2}x)}$.  
+
+Parse $\vecz^t = [\vecz_1^t | \vecz_2^t]$ where $\vecz_1 \in \Z_q^{n \times (m-w)}, \vecz_2 \in \Z_q^w$. 
+
+
+We have that $\matA\vecz = \veczero \bmod{q}$ by construction, so that 
+
+
+\[\bar{\matA}\vecz_1 + \matG\vecz_2 - \matA\matR\vecz_2 = \veczero \bmod{q}\]
+
+
+We also have that 
+
+\[\matA\begin{bmatrix}\matR\vecz_2\\\vecz_2\\\end{bmatrix} = \matG\vecz_2\]
+
+
+If $\tfrac{\sqrt{n}q}{(\sqrt{2}x)} \ll \length{\matR}$ 
+
+
+We have that 
+
+\begin{equation*}
+    x\\
+    y\\
+\end{equation*}
+
+
+
+
+% Let $r = \length{\tilde{\matB}} \cdot \omega(\sqrt{\log m})$. (it's $m$ here not $n$ because that's the lattice dimension)
+
+% where the tilde atop denotes the Gram-schmidt orthogonalization etc etc 
+
+% We can, using $\matB$ and the post-Regev developed sampling techniques in~\cite{DBLP:conf/stoc/GentryPV08}, sample $D_{\lamperp(\matA), r}$ for as many samples as we wish. 
